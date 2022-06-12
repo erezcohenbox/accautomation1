@@ -6,23 +6,19 @@ class bcolors:
     FAIL = '\033[91m'    #RED
     RESET = '\033[0m'
 
-environment = [
-    {
-        'server #1': {
-        'ip address' : 'xxx.xxx.xxx.xxx',
-        'user name': 'username',
-        'password': 'password'
-        },
-        'server #2': {
-        'ip address' : 'xxx.xxx.xxx.xxx',
-        'user name': 'username',
-        'password': 'password'
-        }
-    }
-]
+servers = {
+    "host": "10.1.16.55",
+    "user": "root",
+    "passwd": "ANX406729",
+    "db": "write-math",
+}
 
-with open("configfile.yaml", 'w') as yamlfile:
-    data = yaml.dump(environment, yamlfile)
-    print(bcolors.OK + "\t> successfully created." + bcolors.RESET)
+#inifile = open("configfile.ini", 'w')
+#for key, value in records.items():
+
+with open("configfile.ini", 'w') as inifile:
+    inifile.write(str(servers))
+    print(bcolors.OK + "    > successfully created." + bcolors.RESET)
+    inifile.close
 
 

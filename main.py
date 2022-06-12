@@ -11,6 +11,7 @@ class bcolors:
     FAIL = '\033[91m'    #RED
     RESET = '\033[0m'    #RESET
     CLS = '\033[2J'      #CLEAR SCREEN
+    #https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
 
 def main():
     main_menu()
