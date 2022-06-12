@@ -20,7 +20,8 @@ def main_menu():
     1 -- environment setup
     2 -- service options
     3 -- database options
-    4 -- quit\n\tEnter your choice [1-4]: """
+    4 -- quit\n
+    Enter your choice [1-4]: """
 
     choice = input(prompt)[0]
 
@@ -42,13 +43,14 @@ def environment_menu():
     Aeonix Contact Center environment setup Menu
     1 -- overview current setup
     2 -- change environment setup
-    3 -- go back\n\tEnter your choice [1-3]: """
+    3 -- go back\n
+    Enter your choice [1-3]: """
 
     choice = input(prompt)[0]
 
     if choice in ["1"]:
         try:
-            with open('configfile.yaml') as file:
+            with open('configfile.ini') as file:
                 print('try to open')
                 #data = yaml.safe_load(file)
                 #for key, value in data.items():
@@ -78,7 +80,8 @@ def serviceMenu():
     5 -- start web service
     6 -- stop service
     7 -- stop web service
-    8 -- go back\n\tEnter your choice [1-8]: """
+    8 -- go back\n
+    Enter your choice [1-8]: """
 
     choice = input(prompt)[0]
 
