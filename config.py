@@ -1,4 +1,4 @@
-#import yaml
+import configparser
 
 class bcolors:
     OK = '\033[92m'      #GREEN
@@ -13,12 +13,17 @@ servers = {
     "db": "write-math",
 }
 
+#https://docs.python.org/3/library/configparser.html
+config = configparser.ConfigParser()
+config['DEFAULT'] = {'host': '10.1.16.55',
+                    'user': 'aeonixadmin',
+                    'password': 'anx'}
+
 #inifile = open("configfile.ini", 'w')
 #for key, value in records.items():
 
-with open("configfile.ini", 'w') as inifile:
-    inifile.write(str(servers))
-    print(bcolors.OK + "    > successfully created." + bcolors.RESET)
-    inifile.close
+config['DEFAULT']['ForwardX11'] = 'yes'
+with open('configfile.ini', 'w') as configfile:
+    config.write(configfile)
 
 
