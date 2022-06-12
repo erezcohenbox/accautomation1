@@ -1,4 +1,4 @@
-##
+import paramiko
 
 def service(service,command):
     import paramiko

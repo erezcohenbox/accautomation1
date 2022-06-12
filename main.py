@@ -6,9 +6,11 @@ import ssh_execute
 
 class bcolors:
     OK = '\033[92m'      #GREEN
+    INFO = '\033[95m'
     WARNING = '\033[93m' #YELLOW
     FAIL = '\033[91m'    #RED
     RESET = '\033[0m'    #RESET
+    CLS = '\033[2J'      #CLEAR SCREEN
 
 def main():
     main_menu()
@@ -32,7 +34,7 @@ def main_menu():
     elif choice in ["3"]:
         serviceMenu()
     elif choice in ["4"]:
-        print(bcolors.OK + "\n\t> goodbye...\n" + bcolors.RESET)
+        print(bcolors.WARNING + "    > goodbye...\n" + bcolors.RESET)
         sys.exit()  # Leave the program
     else:
         main_menu()
@@ -45,7 +47,7 @@ def environment_menu():
     2 -- change environment setup
     3 -- go back\n
     Enter your choice [1-3]: """
-
+    
     choice = input(prompt)[0]
 
     if choice in ["1"]:
@@ -56,7 +58,7 @@ def environment_menu():
                 #for key, value in data.items():
                 #   print(key, ":", value)
         except FileNotFoundError:
-            print(bcolors.FAIL + '\t> configuration file not found, creating...' + bcolors.RESET)
+            print(bcolors.FAIL + '    > configuration file not found, creating...' + bcolors.RESET)
             import config
         environment_menu()
     elif choice in ["2"]:
@@ -87,8 +89,8 @@ def serviceMenu():
 
     if choice in ["1"]:
         acc_server_status = ssh_execute.service('accd', 'status')
-        print('\t> service accd is ' + acc_server_status.split(" ")[2])
-        print('\t> service accwebappsd is ' + acc_server_status.split(" ")[11])
+        print(bcolors.INFO + '    > service accd is ' + acc_server_status.split(" ")[2] + bcolors.RESET)
+        print(bcolors.INFO + '    > service accwebappsd is ' + acc_server_status.split(" ")[11] + bcolors.RESET)
         serviceMenu()
     elif choice in ["2"]:
         acc_server_status = ssh_execute.service('accd', 'restart')
