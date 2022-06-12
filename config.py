@@ -1,4 +1,4 @@
-import yaml
+#import yaml
 
 class bcolors:
     OK = '\033[92m'      #GREEN

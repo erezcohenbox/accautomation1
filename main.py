@@ -49,9 +49,10 @@ def environment_menu():
     if choice in ["1"]:
         try:
             with open('configfile.yaml') as file:
-                data = yaml.safe_load(file)
-                for key, value in data.items():
-                    print(key, ":", value)
+                print('try to open')
+                #data = yaml.safe_load(file)
+                #for key, value in data.items():
+                #   print(key, ":", value)
         except FileNotFoundError:
             print(bcolors.FAIL + '\t> configuration file not found, creating...' + bcolors.RESET)
             import config
