@@ -1,6 +1,7 @@
 import sys
 import ssh_execute
 #import yaml
+import config
 
 # new comment
 
@@ -60,7 +61,8 @@ def environment_menu():
                 #   print(key, ":", value)
         except FileNotFoundError:
             print(bcolors.FAIL + '    > configuration file not found, creating...' + bcolors.RESET)
-            import config
+            config.createconfigfile()
+            print(bcolors.OK + '    > done.' + bcolors.RESET)
         environment_menu()
     elif choice in ["2"]:
         # acc_server_status = ssh_execute.service('accd', 'restart')
