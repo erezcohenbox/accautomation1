@@ -27,3 +27,13 @@ def createconfigfile():
 
     with open('configfile.ini', 'w') as configfile:
         config.write(configfile)
+        
+
+def showconfigfile():
+    config = configparser.ConfigParser()
+    config.read ('configfile.ini')
+    for sect in config.sections():
+        print('    [' + sect + ']')
+        for k,v in config.items(sect):
+            print('     {} = {}'.format(k,v))
+    print()

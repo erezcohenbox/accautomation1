@@ -1,18 +1,17 @@
 import sys
 import ssh_execute
-#import yaml
 import config
-
-# new comment
 
 class bcolors:
     OK = '\033[92m'      #GREEN
-    INFO = '\033[95m'
+    INFO = '\033[95m'    #PURPLE
     WARNING = '\033[93m' #YELLOW
     FAIL = '\033[91m'    #RED
     RESET = '\033[0m'    #RESET
     CLS = '\033[2J'      #CLEAR SCREEN
     #https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
+
+
 
 def main():
     main_menu()
@@ -54,8 +53,9 @@ def environment_menu():
 
     if choice in ["1"]:
         try:
-            with open('configfile.ini') as file:
-                print('try to open')
+            with open('configfile.ini') as configfile:
+                print(bcolors.INFO + '    > try to open' + bcolors.RESET)
+                config.showconfigfile()
                 #data = yaml.safe_load(file)
                 #for key, value in data.items():
                 #   print(key, ":", value)
@@ -63,6 +63,7 @@ def environment_menu():
             print(bcolors.FAIL + '    > configuration file not found, creating...' + bcolors.RESET)
             config.createconfigfile()
             print(bcolors.OK + '    > done.' + bcolors.RESET)
+            config.showconfigfile()
         environment_menu()
     elif choice in ["2"]:
         # acc_server_status = ssh_execute.service('accd', 'restart')
