@@ -1,4 +1,4 @@
-import sys
+import os, sys
 import ssh_execute
 import config
 
@@ -44,8 +44,8 @@ def main_menu():
 def environment_menu():
     prompt = """
     Aeonix Contact Center environment setup Menu
-    1 -- overview current setup
-    2 -- change environment setup
+    1 -- overview of current environment
+    2 -- configure the environment
     3 -- go back\n
     Enter your choice [1-3]: """
     
@@ -56,21 +56,17 @@ def environment_menu():
             with open('configfile.ini') as configfile:
                 print(bcolors.INFO + '    > try to open' + bcolors.RESET)
                 config.showconfigfile()
-                #data = yaml.safe_load(file)
-                #for key, value in data.items():
-                #   print(key, ":", value)
         except FileNotFoundError:
             print(bcolors.FAIL + '    > configuration file not found, creating...' + bcolors.RESET)
-            config.createconfigfile()
-            print(bcolors.OK + '    > done.' + bcolors.RESET)
-            config.showconfigfile()
+            config.createemptyconfigfile() #<-- create empty file
+            print(bcolors.FAIL + '    > please configure the environment.' + bcolors.RESET)
+            #config.showconfigfile()
         environment_menu()
     elif choice in ["2"]:
-        # acc_server_status = ssh_execute.service('accd', 'restart')
         print('\t> done.')
+        config.setconfigfile()
         environment_menu()
     elif choice in ["3"]:
-        # acc_server_status = ssh_execute.service('accwebappsd', 'restart')
         main_menu()
     else:
         environment_menu()
