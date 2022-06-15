@@ -78,7 +78,7 @@ def setconfigfile():
         print('option 4 selected')
         if 'N' in fileoptions:
             print('you can create new config file')
-            createconfigfile()
+            initconfigfile()
         else:
             print('you can NOT recreate the config file')
         setconfigfile() 
@@ -95,9 +95,9 @@ def setconfigfile():
     else:
         setconfigfile()
 
-def createconfigfile():
+def initconfigfile():
     config = configparser.ConfigParser()
-    print(bcolors.FAIL + '    > configuration file not found, creating...' + bcolors.RESET)
+    print(bcolors.FAIL + '    > initializing the configuration file...' + bcolors.RESET)
     with open('configfile.ini', 'w') as configfile:
         config.write(configfile)
     print(bcolors.FAIL + '    > please configure the environment.' + bcolors.RESET)
@@ -109,7 +109,6 @@ def clearconfigfile():
     prompt =""
     choice = input(prompt)
     if choice in ["YES"]:
-        print('option 1 selected')
         with open('configfile.ini', 'w') as configfile:
             config.write(configfile)
         print(bcolors.FAIL + '    > please configure the environment.' + bcolors.RESET)
@@ -137,7 +136,7 @@ def overviewconfigfile():
                 print(bcolors.FAIL + '    > configuration file is empty.' + bcolors.RESET)
                 print(bcolors.FAIL + '    > please configure the environment.' + bcolors.RESET)
     except FileNotFoundError:
-        createconfigfile()
+        initconfigfile()
 
 
 
