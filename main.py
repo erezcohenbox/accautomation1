@@ -26,7 +26,7 @@ def main_menu():
     4 -- quit\n
     Enter your choice [1-4]: """
 
-    choice = input(prompt)[0]
+    choice = input(prompt)
 
     if choice in ["1"]:
         environment_menu()
@@ -43,27 +43,18 @@ def main_menu():
 
 def environment_menu():
     prompt = """
-    Aeonix Contact Center environment setup Menu
+    Aeonix Contact Center environment Menu
     1 -- overview of current environment
-    2 -- configure the environment
+    2 -- set the environment
     3 -- go back\n
     Enter your choice [1-3]: """
     
-    choice = input(prompt)[0]
+    choice = input(prompt)
 
     if choice in ["1"]:
-        try:
-            with open('configfile.ini') as configfile:
-                print(bcolors.INFO + '    > try to open' + bcolors.RESET)
-                config.showconfigfile()
-        except FileNotFoundError:
-            print(bcolors.FAIL + '    > configuration file not found, creating...' + bcolors.RESET)
-            config.createemptyconfigfile() #<-- create empty file
-            print(bcolors.FAIL + '    > please configure the environment.' + bcolors.RESET)
-            #config.showconfigfile()
+        config.overviewconfigfile()
         environment_menu()
     elif choice in ["2"]:
-        print('\t> done.')
         config.setconfigfile()
         environment_menu()
     elif choice in ["3"]:
@@ -85,7 +76,7 @@ def serviceMenu():
     8 -- go back\n
     Enter your choice [1-8]: """
 
-    choice = input(prompt)[0]
+    choice = input(prompt)
 
     if choice in ["1"]:
         acc_server_status = ssh_execute.service('accd', 'status')
