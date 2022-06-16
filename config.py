@@ -83,7 +83,8 @@ def readsections():
 
 def addsection(sectioncount):
     sectioncount += 1
-    print(sectioncount)
+    print(bcolors.WARNING + 'adding [SERVICE_' + str(sectioncount) +'] section' + bcolors.RESET)
+    #print(sectioncount)
     
     try:
         host = input(bcolors.INFO + 'host = '+ bcolors.RESET )
@@ -108,13 +109,12 @@ def addsection(sectioncount):
         config = configparser.ConfigParser()
         with open("configfile.ini") as configfile:
             config.read_file(configfile)
-        config['SERVER_'+str(sectioncount)] = {'host': host,
+        config['SERVER_' + str(sectioncount)] = {'host': host,
                         'user': username,
                         'password': password}
         with open("configfile.ini", "w") as configfile:
-            config.write(configfile)
-
-    #sectioncount=readsections()
+            config.write(configfile)     
+            print(bcolors.INFO + 'done.' + bcolors.RESET)
 
 
 
@@ -129,7 +129,6 @@ def initconfigfile():
 def clearconfigfile():
     config = configparser.ConfigParser()
     print(bcolors.WARNING + 'this will clear the configuration file' + bcolors.RESET)
-    #print(bcolors.WARNING + 'are you sure? [YES]' + bcolors.RESET, end=" ")
     choice = input(bcolors.WARNING + 'are you sure? [YES] ' + bcolors.RESET)
     if choice in ["YES"]:
         with open('configfile.ini', 'w') as configfile:
@@ -167,30 +166,3 @@ def overviewconfigfile():
 #    config.read ('configfile.ini')
 #    print(config.sections())
 
-
-    """
-    config['SERVER_1'] = {'host': 'xxx.xxx.xxx.xxx',
-                        'user': 'aeonixadmin',
-                        'password': 'anx'}
-
-    config['SERVER_2'] = {'host': 'xxx.xxx.xxx.xxx',
-                        'user': 'aeonixadmin',
-                        'password': 'anx'}
-
-    config['SERVER_3'] = {'host': 'xxx.xxx.xxx.xxx',
-                        'user': 'aeonixadmin',
-                        'password': 'anx'}
-
-    config['SERVER_3'] = {'host': 'xxx.xxx.xxx.xxx',
-                        'user': 'aeonixadmin',
-                        'password': 'anx'}
-
-    config['SERVER_4'] = {'host': 'xxx.xxx.xxx.xxx',
-                        'user': 'aeonixadmin',
-                        'password': 'anx'}
-
-    #config['SERVER_1']['host'] = '10.1.16.55'
-
-    with open('configfile.ini', 'w') as configfile:
-        config.write(configfile)
-    """
