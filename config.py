@@ -1,13 +1,16 @@
 import configparser
 import os
+import ipaddress
+
+
 
 class bcolors:
-    OK = '\033[92m'      #GREEN
-    INFO = '\033[95m'    #PURPLE
-    WARNING = '\033[93m' #YELLOW
-    FAIL = '\033[91m'    #RED
-    RESET = '\033[0m'    #RESET
-    CLS = '\033[2J'      #CLEAR SCREEN
+    OK = '\033[92m    > '      #GREEN
+    INFO = '\033[95m    > '    #PURPLE
+    WARNING = '\033[93m    > ' #YELLOW
+    FAIL = '\033[91m    > '    #RED
+    RESET = '\033[0m'          #RESET
+    CLS = '\033[2J'            #CLS
     #https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
 
 def checkconfigstatus():
@@ -19,15 +22,15 @@ def checkconfigstatus():
             if filesize > 0:
                 #file exist and have some settings
                 # so Add, Edit, Delete and Clear functions can be used
-                configfileoptions = ['A','E','D','C']
+                configfileoptions = ['add','edit','delete','clear']
             else:
                 #file exist with empty settings
                 # so Add is the only function that can be used
-                configfileoptions = ['A']
+                configfileoptions = ['add']
     except FileNotFoundError:
         #file does not exist
-        #so New file Creation is the only function that can be used 
-        configfileoptions = ['N']
+        #so New file Initialization is the only function that can be used 
+        configfileoptions = ['initialize']
     
     return(configfileoptions)
 
@@ -39,83 +42,102 @@ def setconfigfile():
     #https://docs.python.org/3/library/configparser.html
     config = configparser.ConfigParser()
     fileoptions = checkconfigstatus()
-    print(fileoptions)
-
-    prompt = """
+    #print(fileoptions)
+    
+    prompt = f"""
     Aeonix Contact Center environment configuration Menu
     1 -- add a new server
     2 -- edit a server
     3 -- delete a server
-    4 -- create a configuration file (if not exist)
-    5 -- clear the configuration file
-    6 -- go back\n
-    Enter your choice [1-6]: """
+    4 -- initialize a configuration file (if not exist)
+    5 -- clear the configuration file content
+    6 -- go back
+    note that you can use the: {', '.join(fileoptions)} option(s) only\n
+    Enter your choice [1-6]: """ 
     
     choice = input(prompt)
     
     if choice in ["1"]:
-        print('option 1 selected')
-        if 'A' in fileoptions:
-            print('you can add')
-        else:
-            print('you can NOT add')
-        setconfigfile()
+        if 'add' in fileoptions: 
+            sectioncount=readsections()
+            addsection(sectioncount)
     elif choice in ["2"]:
-        print('option 2 selected')
-        if 'E' in fileoptions:
+        if 'edit' in fileoptions:
             print('you can edit')
-        else:
-            print('you can NOT edit')            
-        setconfigfile()
     elif choice in ["3"]:
-        print('option 3 selected')
-        if 'D' in fileoptions:
+        if 'delete' in fileoptions:
             print('you can delete')
-        else:
-            print('you can NOT delete')   
-        setconfigfile()
     elif choice in ["4"]:
-        print('option 4 selected')
-        if 'N' in fileoptions:
-            print('you can create new config file')
-            initconfigfile()
-        else:
-            print('you can NOT recreate the config file')
-        setconfigfile() 
+        if 'initialize' in fileoptions: initconfigfile()
     elif choice in ["5"]:
-        print('option 5 selected')
-        if 'C' in fileoptions:
-            print('you can clear the config file')
-            clearconfigfile()
-        else:
-            print('you can NOT clear the config file')   
-        setconfigfile()
-    elif choice in ["6"]:
+        if 'clear' in fileoptions: clearconfigfile()
+    elif choice in ["6"]: return()
+    
+    setconfigfile()
+
+
+def readsections():
+    config = configparser.ConfigParser()
+    config.read('configfile.ini')
+    return(len(config.sections()))
+
+def addsection(sectioncount):
+    sectioncount += 1
+    print(sectioncount)
+    
+    try:
+        host = input(bcolors.INFO + 'host = '+ bcolors.RESET )
+        ip = ipaddress.ip_address(host)
+        #print(f'{ip} is correct. Version: IPv{ip.version}')
+    except ValueError:
+        print(bcolors.FAIL + 'invalid ip address...' + bcolors.RESET)
         return()
-    else:
-        setconfigfile()
+
+    username = input(bcolors.INFO + 'username = '+ bcolors.RESET)
+    if " " in username or username =="":
+        print(bcolors.FAIL + 'invalid username...' + bcolors.RESET)
+        return()
+    
+    password = input(bcolors.INFO + 'password = '+ bcolors.RESET)
+    if " " in password or password =="":
+        print(bcolors.FAIL + 'invalid password...' + bcolors.RESET)
+        return()
+    
+    choice = input(bcolors.WARNING + 'add (append) to configuration? [YES] ' + bcolors.RESET)
+    if choice in ["YES"]:
+        config = configparser.ConfigParser()
+        with open("configfile.ini") as configfile:
+            config.read_file(configfile)
+        config['SERVER_'+str(sectioncount)] = {'host': host,
+                        'user': username,
+                        'password': password}
+        with open("configfile.ini", "w") as configfile:
+            config.write(configfile)
+
+    #sectioncount=readsections()
+
+
 
 def initconfigfile():
     config = configparser.ConfigParser()
-    print(bcolors.FAIL + '    > initializing the configuration file...' + bcolors.RESET)
+    print(bcolors.FAIL + 'initializing the configuration file...' + bcolors.RESET)
     with open('configfile.ini', 'w') as configfile:
         config.write(configfile)
-    print(bcolors.FAIL + '    > please configure the environment.' + bcolors.RESET)
+    print(bcolors.FAIL + 'please configure the environment.' + bcolors.RESET)
 
 
 def clearconfigfile():
     config = configparser.ConfigParser()
-    print(bcolors.WARNING + '    > this will clear the configuration file' + bcolors.RESET)
-    prompt =""
-    choice = input(prompt)
+    print(bcolors.WARNING + 'this will clear the configuration file' + bcolors.RESET)
+    #print(bcolors.WARNING + 'are you sure? [YES]' + bcolors.RESET, end=" ")
+    choice = input(bcolors.WARNING + 'are you sure? [YES] ' + bcolors.RESET)
     if choice in ["YES"]:
         with open('configfile.ini', 'w') as configfile:
             config.write(configfile)
-        print(bcolors.FAIL + '    > please configure the environment.' + bcolors.RESET)
+        print(bcolors.INFO + 'done.' + bcolors.RESET)
+        print(bcolors.FAIL + 'please configure the environment.' + bcolors.RESET)
     else:
         return()
-
-
 
 
 
@@ -133,8 +155,8 @@ def overviewconfigfile():
                         print('     {} = {}'.format(k,v))
                 print()
             else:
-                print(bcolors.FAIL + '    > configuration file is empty.' + bcolors.RESET)
-                print(bcolors.FAIL + '    > please configure the environment.' + bcolors.RESET)
+                print(bcolors.FAIL + 'configuration file is empty.' + bcolors.RESET)
+                print(bcolors.FAIL + 'please configure the environment.' + bcolors.RESET)
     except FileNotFoundError:
         initconfigfile()
 
