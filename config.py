@@ -120,14 +120,30 @@ def addsection(sectioncount):
 def deletesection():
     config = configparser.ConfigParser()
     with open('configfile.ini', 'r') as configfile:
-        config.readfp(configfile)
+        config.read_file(configfile)
+    #print(config.items(1))
     print(bcolors.WARNING + 'which one of the servers you wish to delete?' + bcolors.RESET)
     print(bcolors.INFO + ', '.join(config.sections()) + bcolors.RESET)
     choice = input(bcolors.WARNING + 'please type the SERVER number: ' + bcolors.RESET)
     config.remove_section('SERVER_' + str(choice))
-    #print(config.sections())
+    print(len(config.sections()))
+    
+    for sect in config.sections():
+       print('    [' + sect + ']')
+       for k,v in config.items(sect):
+            print('     {} = {}'.format(k,v))
+            #config['SERVER_' + str(sect)] = {'host': host,
+            #       'user': username,
+            #       'password': password}
     with open('configfile.ini', 'w') as configfile:
         config.write(configfile)
+#    for rearrange 
+#            config['SERVER_' + str(sectioncount)] = {'host': host,
+#                       'user': username,
+#                       'password': password}
+  
+
+
     #with open('configfile.ini', 'r') as configfile:
     #   print(config.read())
 
