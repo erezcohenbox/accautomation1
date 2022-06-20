@@ -51,7 +51,7 @@ def setconfigfile():
     4 -- initialize a configuration file (if not exist)
     5 -- clear the configuration file content
     6 -- go back
-    note that you can use the: {', '.join(fileoptions)} option(s) only\n
+    note that you can use the {', '.join(fileoptions)} option(s) only\n
     Enter your choice [1-6]: """ 
     
     choice = input(prompt)
@@ -160,11 +160,13 @@ def deletesection():
         config.write()
         print(bcolors.OK + 'done.' + bcolors.RESET)
         
-        #servernumber = len(config.sections)
-        #sectionlist = ', '.join(config.sections)
-        #for servers in sectionlist:
-
-        
+        #now, reorder the server sections from 1 --> and on...
+        serverlist = config.sections
+        i = 1
+        for server in serverlist:
+            config.rename(server, 'SERVER_' + str(i))
+            i += 1
+        config.write()
     except ValueError:
         print(bcolors.FAIL + 'such server does not exist...' + bcolors.RESET)
         return()
