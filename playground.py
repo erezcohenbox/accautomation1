@@ -34,18 +34,32 @@ def ping_ip(current_ip_address):
     except Exception:
             return False
 
-serverlist =[]
-config = ConfigObj('configfile.ini')
-for servernumber in range(len(config.sections)):
-    host = config['SERVER_' + str(servernumber + 1)]['host']
-    serverlist.append(str(host))
-print(serverlist)
+def checkservers():
+    import paramiko
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-for each in serverlist:
-    if ping_ip(each):
-        print(f"      host: {each:15} is up")
-    else:
-        print(f"      host: {each:15} is unreachable")
+    serverlist =[]
+    config = ConfigObj('configfile.ini')
+    for servernumber in range(len(config.sections)):
+        host = config['SERVER_' + str(servernumber + 1)]['host']
+        serverlist.append(str(host))
+    print(serverlist)
+
+    for each in serverlist:
+        if ping_ip(each):
+            print(f"      host: {each:15} is up")
+        else:
+            print(f"      host: {each:15} is unreachable")
     
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(str(each), 'aeoxniadmin', 'anx')
+        _stdin, _stdout,_stderr = ssh.exec_command("df")
+        #outlines = stdout.readlines()
+        #response = ''.join(outlines)
+        print(_stdout.read().decode())
+        ssh.close()
 
-#ping('1.1.1.1')
+checkservers()
+
