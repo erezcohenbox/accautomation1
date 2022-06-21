@@ -1,4 +1,4 @@
-import configparser
+#import configparser
 import os
 import ipaddress
 from configobj import ConfigObj
@@ -6,7 +6,7 @@ from configobj import ConfigObj
 
 class bcolors:
     OK = '\033[92m    > '      #GREEN
-    INFO = '\033[95m    > '    #PURPLE
+    INFO = '\033[96m    > '    #LIGHT BLUE
     WARNING = '\033[93m    > ' #YELLOW
     FAIL = '\033[91m    > '    #RED
     RESET = '\033[0m'          #RESET
@@ -15,7 +15,7 @@ class bcolors:
 
 def checkconfigstatus():
     configfileoptions = ''
-    config = configparser.ConfigParser()
+    #config = configparser.ConfigParser()
     try:
         with open('configfile.ini') as configfile:
             filesize = os.path.getsize('configfile.ini')
@@ -40,7 +40,7 @@ def checkconfigstatus():
 
 def setconfigfile():
     #https://docs.python.org/3/library/configparser.html
-    config = configparser.ConfigParser()
+    #config = configparser.ConfigParser()
     fileoptions = checkconfigstatus()
     
     prompt = f"""
@@ -115,7 +115,7 @@ def addsection():
 
 def editsection():
     config = ConfigObj('configfile.ini')
-    sectioncount = len(config.sections)
+    #sectioncount = len(config.sections)
     print(bcolors.WARNING + 'which one of the servers you wish to edit?' + bcolors.RESET)
     print(bcolors.INFO + ', '.join(config.sections) + bcolors.RESET)
     servernumber = input(bcolors.WARNING + 'please type the SERVER number: ' + bcolors.RESET)
@@ -161,12 +161,8 @@ def deletesection():
         print(bcolors.OK + 'done.' + bcolors.RESET)
         
         #now, reorder the server sections from 1 --> and on...
-        serverlist = config.sections
-        i = 1
-        for server in serverlist:
-            config.rename(server, 'SERVER_' + str(i))
-            i += 1
-        config.write()
+        reorderconfigfile()
+
     except ValueError:
         print(bcolors.FAIL + 'such server does not exist...' + bcolors.RESET)
         return()
@@ -192,12 +188,34 @@ def clearconfigfile():
 
 
 
+def reorderconfigfile():
+    config = ConfigObj('configfile.ini')
+    try:
+        serverlist = config.sections
+        i = 1
+        for server in serverlist:
+            config.rename(server, 'SERVER_' + str(i))
+            i += 1
+        config.write()
+    except KeyError:
+        print(bcolors.WARNING + 'manual reorder of \'configfile.ini\' file is needed' + bcolors.RESET)
 
 def overviewconfigfile():
     config = ConfigObj('configfile.ini')
     if (len(config.sections)) >= 1:
-        print(bcolors.INFO +'configuration file is not empty.' + bcolors.RESET)
-        config.get
+        configfile = open('configfile.ini',"r")
+        configfilelines = configfile.readlines()
+        count = 0
+        #print ('      '+ '-' * 20)
+        for line in configfilelines:
+            count += 1
+            if line[0] =='[':
+                print()
+            print("      {}".format(line.strip()))
+        print ()
+        configfile.close()
+        print(bcolors.INFO +'configuration file contains ' + str(len(config.sections)) + ' server(s)' + bcolors.RESET)
+        reorderconfigfile()
     else:
         print(bcolors.FAIL + 'configuration file is empty.' + bcolors.RESET)
         print(bcolors.FAIL + 'please set the environment.' + bcolors.RESET)
