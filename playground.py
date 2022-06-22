@@ -34,37 +34,43 @@ def ping_ip(current_ip_address):
     except Exception:
             return False
 
+def ssh_ip(host, user, password, cmdx):
+    import paramiko
+    client = paramiko.client.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    try:
+        client.connect(host, username=user, password=password)
+        _stdin, _stdout,_stderr = client.exec_command(cmdx)
+        client.close()
+        return True
+    except Exception:
+        return False
+    
+
 def checkservers():
     import paramiko
-
+    client = paramiko.client.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    cmdx='pwd'
     serverlist =[]
     config = ConfigObj('configfile.ini')
     for servernumber in range(len(config.sections)):
         host = config['SERVER_' + str(servernumber + 1)]['host']
+        user = config['SERVER_' + str(servernumber + 1)]['user']
+        password = config['SERVER_' + str(servernumber + 1)]['password']
         serverlist.append(str(host))
-    print(serverlist)
-
-    for each in serverlist:
-        #user = config['SERVER_' + str(servernumber + 1)]['user']
-        #password = config['SERVER_' + str(servernumber + 1)]['password']
-        
-        user = config['SERVER_1']['user']
-        password = config['SERVER_1']['password']
-        #print(user,password)
-        if ping_ip(each):
-            print(f"      host: {each:15} is up")
+        #print(serverlist)
+        if ping_ip(host):
+            print(f"      host: {host:15} ping ok")
         else:
-            print(f"      host: {each:15} is unreachable")
-    
-    
+            print(f"      host: {host:15} ping unreachable")
 
-        #command = "echo"
-        client = paramiko.client.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(each, username=user, password=password)
-        _stdin, _stdout,_stderr = client.exec_command("")
-        print(_stdout.read().decode())
-        client.close()
+        if ssh_ip(host, user, password, cmdx):
+            print(' '*27, 'ssh established')
+        else:
+            print(' '*27, 'ssh timeout error')
+
+
 
 checkservers()
 
