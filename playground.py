@@ -36,8 +36,6 @@ def ping_ip(current_ip_address):
 
 def checkservers():
     import paramiko
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     serverlist =[]
     config = ConfigObj('configfile.ini')
@@ -47,19 +45,26 @@ def checkservers():
     print(serverlist)
 
     for each in serverlist:
+        #user = config['SERVER_' + str(servernumber + 1)]['user']
+        #password = config['SERVER_' + str(servernumber + 1)]['password']
+        
+        user = config['SERVER_1']['user']
+        password = config['SERVER_1']['password']
+        #print(user,password)
         if ping_ip(each):
             print(f"      host: {each:15} is up")
         else:
             print(f"      host: {each:15} is unreachable")
     
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(str(each), 'aeoxniadmin', 'anx')
-        _stdin, _stdout,_stderr = ssh.exec_command("df")
-        #outlines = stdout.readlines()
-        #response = ''.join(outlines)
+    
+
+        #command = "echo"
+        client = paramiko.client.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(each, username=user, password=password)
+        _stdin, _stdout,_stderr = client.exec_command("")
         print(_stdout.read().decode())
-        ssh.close()
+        client.close()
 
 checkservers()
 
