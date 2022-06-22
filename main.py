@@ -54,7 +54,8 @@ def environment_menu():
     choice = input(prompt)
 
     if choice in ["1"]:
-        config.overviewconfigfile()
+        #config.overviewconfigfile()
+        config.checkservers()
         environment_menu()
     elif choice in ["2"]:
         config.setconfigfile()

@@ -2,7 +2,9 @@
 import os
 import ipaddress
 from configobj import ConfigObj
-
+import subprocess
+import platform
+import paramiko
 
 class bcolors:
     OK = '\033[92m    > '      #GREEN
@@ -186,8 +188,6 @@ def clearconfigfile():
     else:
         return()
 
-
-
 def reorderconfigfile():
     config = ConfigObj('configfile.ini')
     try:
@@ -220,3 +220,57 @@ def overviewconfigfile():
         print(bcolors.FAIL + 'configuration file is empty.' + bcolors.RESET)
         print(bcolors.FAIL + 'please set the environment.' + bcolors.RESET)
     
+
+def checkservers():
+    client = paramiko.client.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    cmdx='pwd'
+    serverlist =[]
+    config = ConfigObj('configfile.ini')
+    print()
+    for servernumber in range(len(config.sections)):
+        host = config['SERVER_' + str(servernumber + 1)]['host']
+        user = config['SERVER_' + str(servernumber + 1)]['user']
+        password = config['SERVER_' + str(servernumber + 1)]['password']
+        serverlist.append(str(host))
+        #print(serverlist)
+        print('    [SERVER_' + str(servernumber + 1) + ']')
+        print('    host = ' + config['SERVER_' + str(servernumber + 1)]['host'])
+        print('    user = ' + config['SERVER_' + str(servernumber + 1)]['user'])
+        print('    password = ' + config['SERVER_' + str(servernumber + 1)]['password'])
+
+        if ping_ip(host):
+            bcolors.FAIL
+            print(bcolors.OK + 'pinging host...  ping ok' + bcolors.RESET )
+        else:
+            print(bcolors.FAIL + 'pinging host...  ping unreachable' + bcolors.RESET )
+        
+        if ssh_ip(host, user, password, cmdx):
+            print(bcolors.OK +   'remote access... ssh established' + bcolors.RESET)
+        else:
+            print(bcolors.FAIL + 'remote access... ssh timeout error' + bcolors.RESET)
+        
+        print()
+
+def ping_ip(current_ip_address):
+    try:
+        output = subprocess.check_output("ping -{} 1 {}".format('n' if platform.system().lower(
+        ) == "windows" else 'c', current_ip_address ), shell=True, universal_newlines=True)
+        if 'unreachable' in output:
+            return False
+        else:
+            return True
+    except Exception:
+            return False
+
+def ssh_ip(host, user, password, cmdx):
+    import paramiko
+    client = paramiko.client.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    try:
+        client.connect(host, username=user, password=password)
+        _stdin, _stdout,_stderr = client.exec_command(cmdx)
+        client.close()
+        return True
+    except Exception:
+        return False
