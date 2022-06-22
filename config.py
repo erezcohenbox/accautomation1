@@ -1,4 +1,3 @@
-#import configparser
 import os
 import ipaddress
 from configobj import ConfigObj
@@ -17,21 +16,14 @@ class bcolors:
 
 def checkconfigstatus():
     configfileoptions = ''
-    #config = configparser.ConfigParser()
     try:
         with open('configfile.ini') as configfile:
             filesize = os.path.getsize('configfile.ini')
             if filesize > 0:
-                #file exist and have some settings
-                # so Add, Edit, Delete and Clear functions can be used
                 configfileoptions = ['add','edit','delete','clear']
             else:
-                #file exist with empty settings
-                # so Add is the only function that can be used
                 configfileoptions = ['add']
     except FileNotFoundError:
-        #file does not exist
-        #so New file Initialization is the only function that can be used 
         configfileoptions = ['initialize']
     
     return(configfileoptions)
@@ -41,8 +33,6 @@ def checkconfigstatus():
 
 
 def setconfigfile():
-    #https://docs.python.org/3/library/configparser.html
-    #config = configparser.ConfigParser()
     fileoptions = checkconfigstatus()
     
     prompt = f"""
@@ -117,7 +107,6 @@ def addsection():
 
 def editsection():
     config = ConfigObj('configfile.ini')
-    #sectioncount = len(config.sections)
     print(bcolors.WARNING + 'which one of the servers you wish to edit?' + bcolors.RESET)
     print(bcolors.INFO + ', '.join(config.sections) + bcolors.RESET)
     servernumber = input(bcolors.WARNING + 'please type the SERVER number: ' + bcolors.RESET)
