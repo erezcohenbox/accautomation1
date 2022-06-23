@@ -80,8 +80,8 @@ def serverelements(sectionnumber):
     return(serverdict)
 
 
-serverelements(1)
-print(serverelements(1)['host'])
+#serverelements(1)
+#print(serverelements(1)['host'])
 '''
 config = ConfigObj('configfile.ini')
 print()
@@ -98,45 +98,24 @@ for sectionnumber in range(1, len(config.sections)):
 '''
 
 
+def ssh_upload(host, user, password, cmdx):
+    import paramiko
+    import os
+    client = paramiko.client.SSHClient()
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    
+    transport = paramiko.Transport(host, 22)
+    transport.connect(username=user,password=password)
+    sftp = paramiko.SFTPClient.from_transport(transport)
+    #stdin,stdout,stderr = client.exec_command(cmdx)
+    
+    sftp.put(r"\\aeonixbuilder\aeonixVersion\Aeonix7.3.036.zip","/home/aeonixadmin/README.md")
+    sftp.close()
+    transport.close()
+   
 
+ssh_upload('10.1.16.55','aeonixadmin','anx', 'pwd')
 #checkservers()
 #printsections()
 
-"""
-import socket
-import time
-
-ip = "10.1.16.55"
-port = 22
-retry = 2
-delay = 5
-timeout = 3
-
-def isOpen(ip, port):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(timeout)
-    try:
-            s.connect((ip, int(port)))
-            s.shutdown(socket.SHUT_RDWR)
-            return True
-    except:
-            return False
-    finally:
-            s.close()
-
-def checkHost(ip, port):
-    ipup = False
-    for i in range(retry):
-            if isOpen(ip, port):
-                    ipup = True
-                    break
-            else:
-                    time.sleep(delay)
-    return ipup
-
-if checkHost(ip, port):
-        print (ip + " is UP")
-else:
-    print (ip + " not responding")
-
-"""

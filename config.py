@@ -279,7 +279,7 @@ def ping_ip(host):
             return False
 
 def ssh_ip(host, user, password, cmdx):
-    import paramiko
+    #import paramiko
     client = paramiko.client.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
