@@ -100,17 +100,16 @@ for sectionnumber in range(1, len(config.sections)):
 
 def ssh_upload(host, user, password, cmdx):
     import paramiko
-    import os
+    #import os
     client = paramiko.client.SSHClient()
     client.load_system_host_keys()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    
     transport = paramiko.Transport(host, 22)
     transport.connect(username=user,password=password)
     sftp = paramiko.SFTPClient.from_transport(transport)
     #stdin,stdout,stderr = client.exec_command(cmdx)
     
-    sftp.put(r"\\aeonixbuilder\aeonixVersion\Aeonix7.3.036.zip","/home/aeonixadmin/README.md")
+    sftp.put(r"C:\temp\tcmd1000x64.exe","/home/aeonixadmin/tcmd1000x64.exe")
     sftp.close()
     transport.close()
    
