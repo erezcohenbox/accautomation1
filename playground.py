@@ -67,8 +67,40 @@ def ssh_ip(host, user, password, cmdx):
     except Exception:
         return False
 
+def serverelements(sectionnumber):
+    config = ConfigObj('configfile.ini')
+    serverdict = {}
+    serverdict.clear
+    SECTION = 'SERVER_' + str(sectionnumber) 
+    host = config[SECTION]['host']
+    user = config[SECTION]['user']
+    password = config[SECTION]['password']
+    serverdict = {'section':SECTION, 'host': host, 'user': user, 'password':password}
+    #print(serverdict['section'])
+    return(serverdict)
+
+
+serverelements(1)
+print(serverelements(1)['host'])
+'''
+config = ConfigObj('configfile.ini')
+print()
+for sectionnumber in range(1, len(config.sections)):
+    serverelements(1)
+    SECTION = serverelements(sectionnumber['section'])
+    host = serverelements(sectionnumber['host'])
+    user = serverelements(sectionnumber['user'])
+    password = serverelements(sectionnumber['password'])
+    print('    [' + SECTION + ']')
+    print('    host = ' + host)
+    print('    host = ' + user)
+    print('    host = ' + password)
+'''
+
+
+
 #checkservers()
-printsections()
+#printsections()
 
 """
 import socket

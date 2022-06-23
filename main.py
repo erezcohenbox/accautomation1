@@ -20,6 +20,7 @@ def main():
 
 
 def main_menu():
+    print(bcolors.RESET)
     prompt = """
     Aeonix Contact Center Main Menu
     1 -- environment setup
@@ -46,8 +47,8 @@ def main_menu():
 def environment_menu():
     prompt = """
     Aeonix Contact Center environment Menu
-    1 -- overview of current environment
-    2 -- set the environment
+    1 -- overview of environment status
+    2 -- set up the environment
     3 -- go back\n
     Enter your choice [1-3]: """
     

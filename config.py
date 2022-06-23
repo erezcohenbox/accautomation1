@@ -210,41 +210,67 @@ def overviewconfigfile():
         print(bcolors.FAIL + 'please set the environment.' + bcolors.RESET)
     
 
+#def serverelements():
+#    config = ConfigObj('configfile.ini')
+#    serverlist =[]
+#    for servernumber in range(len(config.sections)):
+#       host = config['SERVER_' + str(servernumber + 1)]['host']
+#        user = config['SERVER_' + str(servernumber + 1)]['user']
+#        password = config['SERVER_' + str(servernumber + 1)]['password']
+#        serverlist.append(str(host))
+
 def checkservers():
-    client = paramiko.client.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     cmdx='pwd'
-    serverlist =[]
+    element ={}
     config = ConfigObj('configfile.ini')
     print()
-    for servernumber in range(len(config.sections)):
-        host = config['SERVER_' + str(servernumber + 1)]['host']
-        user = config['SERVER_' + str(servernumber + 1)]['user']
-        password = config['SERVER_' + str(servernumber + 1)]['password']
-        serverlist.append(str(host))
-        #print(serverlist)
-        print('    [SERVER_' + str(servernumber + 1) + ']')
-        print('    host = ' + config['SERVER_' + str(servernumber + 1)]['host'])
-        print('    user = ' + config['SERVER_' + str(servernumber + 1)]['user'])
-        print('    password = ' + config['SERVER_' + str(servernumber + 1)]['password'])
-
+    for sectionnumber in range(1, len(config.sections) + 1):
+        element = serverelements(sectionnumber)
+        SECTION = element['section']
+        host =  element['host']
+        user =  element['user']
+        password =  element['password']
+        print('    [' + SECTION + ']')
+        print('    host = ' + host)
+        print('    user = ' + user)
+        print('    password = ' + password)
+        
+        print(bcolors.INFO + 'pinging host...      ', end ='')
         if ping_ip(host):
-            bcolors.FAIL
-            print(bcolors.OK + 'pinging host...  ping ok' + bcolors.RESET )
+            print('ping ok')
         else:
-            print(bcolors.FAIL + 'pinging host...  ping unreachable' + bcolors.RESET )
-        
+            print('unreachable')
+  
+        print(bcolors.INFO + 'remote ssh access... ', end ='')
         if ssh_ip(host, user, password, cmdx):
-            print(bcolors.OK +   'remote access... ssh established' + bcolors.RESET)
+            print('established')
         else:
-            print(bcolors.FAIL + 'remote access... ssh timeout error' + bcolors.RESET)
-        
-        print()
+            print('timeout error')
+        #keep this section for open port scaning
+        #print(bcolors.INFO + 'check port 3308...   ', end ='')
+        #if socket_ip(host, 3308):
+        #    print('port is open')
+        #else:
+        #    print('port is not open')
+        print(bcolors.RESET)
 
-def ping_ip(current_ip_address):
+def serverelements(sectionnumber):
+    config = ConfigObj('configfile.ini')
+    serverdict = {}
+    serverdict.clear
+    SECTION = 'SERVER_' + str(sectionnumber) 
+    host = config[SECTION]['host']
+    user = config[SECTION]['user']
+    password = config[SECTION]['password']
+    serverdict = {'section':SECTION, 'host': host, 'user': user, 'password':password}
+    #print(serverdict['section'])
+    return(serverdict)
+
+
+def ping_ip(host):
     try:
         output = subprocess.check_output("ping -{} 1 {}".format('n' if platform.system().lower(
-        ) == "windows" else 'c', current_ip_address ), shell=True, universal_newlines=True)
+        ) == "windows" else 'c', host ), shell=True, universal_newlines=True)
         if 'unreachable' in output:
             return False
         else:
@@ -263,3 +289,14 @@ def ssh_ip(host, user, password, cmdx):
         return True
     except Exception:
         return False
+
+def socket_ip(host, port):
+    import socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex((host,port))
+    if result == 0:
+        sock.close()
+        return True
+    else:
+        return False
+    
