@@ -224,6 +224,8 @@ def checkservers():
     element ={}
     config = ConfigObj('configfile.ini')
     print()
+    print(bcolors.INFO + 'configuration contains ' + str(len(config.sections)) + ' server(s) ' + bcolors.RESET)
+    print()
     for sectionnumber in range(1, len(config.sections) + 1):
         element = serverelements(sectionnumber)
         SECTION = element['section']
@@ -253,6 +255,7 @@ def checkservers():
         #else:
         #    print('port is not open')
         print(bcolors.RESET)
+    
 
 def serverelements(sectionnumber):
     config = ConfigObj('configfile.ini')
