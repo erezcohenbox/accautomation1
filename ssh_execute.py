@@ -4,10 +4,10 @@ def service(service,command):
     import paramiko
     ip = '10.1.16.55'
     port = 22
-    username = 'root'
-    password = 'ANX406729'
+    username = 'aeonixadmin'
+    password = 'anx'
 
-    cmd = 'service ' + ' ' + service + ' ' + command
+    cmd = 'sudo service ' + ' ' + service + ' ' + command
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())

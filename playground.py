@@ -109,7 +109,7 @@ def ssh_upload(host, user, password, cmdx):
     sftp = paramiko.SFTPClient.from_transport(transport)
     #stdin,stdout,stderr = client.exec_command(cmdx)
     
-    sftp.put(r"C:\temp\tcmd1000x64.exe","/home/aeonixadmin/tcmd1000x64.exe")
+    sftp.put(r"C:\temp\tcmd1000x64.exe","/home/aeonixadmin/upgrade/tcmd1000x64.exe")
     sftp.close()
     transport.close()
    

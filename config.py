@@ -7,9 +7,11 @@ import paramiko
 
 class bcolors:
     OK = '\033[92m    > '      #GREEN
-    INFO = '\033[96m    > '    #LIGHT BLUE
+    OKV = '\033[92m'           #GREEN
+    INFO = '\033[95m    > '    #PURPLE
     WARNING = '\033[93m    > ' #YELLOW
     FAIL = '\033[91m    > '    #RED
+    FAILV = '\033[91m'         #RED
     RESET = '\033[0m'          #RESET
     CLS = '\033[2J'            #CLS
     #https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
@@ -35,7 +37,7 @@ def checkconfigstatus():
 def setconfigfile():
     fileoptions = checkconfigstatus()
     
-    prompt = f"""
+    prompt = """
     Aeonix Contact Center environment configuration Menu
     1 -- add a new server
     2 -- edit a server
@@ -225,8 +227,8 @@ def checkservers():
     config = ConfigObj('configfile.ini')
     print()
     print(bcolors.INFO + 'configuration contains ' + str(len(config.sections)) + ' server(s) ' + bcolors.RESET)
-    print()
     for sectionnumber in range(1, len(config.sections) + 1):
+        print()
         element = serverelements(sectionnumber)
         SECTION = element['section']
         host =  element['host']
@@ -237,25 +239,23 @@ def checkservers():
         print('    user = ' + user)
         print('    password = ' + password)
         
-        print(bcolors.INFO + 'pinging host...      ', end ='')
         if ping_ip(host):
-            print('ping ok')
+            print(bcolors.INFO + 'pinging host...      '+ bcolors.OKV + 'ping ok' + bcolors.RESET)
         else:
-            print('unreachable')
+            print(bcolors.INFO + 'pinging host...      '+ bcolors.FAILV + 'unreachable' + bcolors.RESET)
   
-        print(bcolors.INFO + 'remote ssh access... ', end ='')
         if ssh_ip(host, user, password, cmdx):
-            print('established')
+            print(bcolors.INFO + 'remote ssh access... '+ bcolors.OKV + 'established' + bcolors.RESET)
         else:
-            print('timeout error')
+            print(bcolors.INFO + 'remote ssh access... '+ bcolors.FAILV + 'timeout' + bcolors.RESET)
+
         #keep this section for open port scaning
         #print(bcolors.INFO + 'check port 3308...   ', end ='')
         #if socket_ip(host, 3308):
         #    print('port is open')
         #else:
         #    print('port is not open')
-        print(bcolors.RESET)
-    
+        #print()
 
 def serverelements(sectionnumber):
     config = ConfigObj('configfile.ini')
