@@ -85,13 +85,31 @@ def addsection():
         print(bcolors.FAIL + 'invalid ip address...' + bcolors.RESET)
         return()
 
-    username = input(bcolors.INFO + 'username = '+ bcolors.RESET)
-    if " " in username or username =="":
-        print(bcolors.FAIL + 'invalid username...' + bcolors.RESET)
+    user = input(bcolors.INFO + 'user = '+ bcolors.RESET)
+    if " " in user or user =="":
+        print(bcolors.FAIL + 'invalid user...' + bcolors.RESET)
         return()
     
     password = input(bcolors.INFO + 'password = '+ bcolors.RESET)
     if " " in password or password =="":
+        print(bcolors.FAIL + 'invalid password...' + bcolors.RESET)
+        return()
+
+    try:
+        sipp_host = input(bcolors.INFO + 'sipp_host = '+ bcolors.RESET )
+        ip = ipaddress.ip_address(sipp_host)
+        #print(f'{ip} is correct. Version: IPv{ip.version}')
+    except ValueError:
+        print(bcolors.FAIL + 'invalid ip address...' + bcolors.RESET)
+        return()
+
+    sipp_user = input(bcolors.INFO + 'sipp_user = '+ bcolors.RESET)
+    if " " in sipp_user or sipp_user =="":
+        print(bcolors.FAIL + 'invalid user...' + bcolors.RESET)
+        return()
+    
+    sipp_password = input(bcolors.INFO + 'sipp_password = '+ bcolors.RESET)
+    if " " in sipp_password or sipp_password =="":
         print(bcolors.FAIL + 'invalid password...' + bcolors.RESET)
         return()
     
@@ -101,8 +119,11 @@ def addsection():
         config = ConfigObj('configfile.ini')
         config['SERVER_' + str(servernumber)] = {}
         config['SERVER_' + str(servernumber)]['host'] = host
-        config['SERVER_' + str(servernumber)]['user'] = username
+        config['SERVER_' + str(servernumber)]['user'] = user
         config['SERVER_' + str(servernumber)]['password'] = password
+        config['SERVER_' + str(servernumber)]['sipp_host'] = sipp_host
+        config['SERVER_' + str(servernumber)]['sipp_user'] = sipp_user
+        config['SERVER_' + str(servernumber)]['sipp_password'] = sipp_password
         config.write()
         print(bcolors.OK + 'done.' + bcolors.RESET)
 
@@ -121,24 +142,45 @@ def editsection():
         print(bcolors.FAIL + 'invalid ip address...' + bcolors.RESET)
         return()
 
-    username = input(bcolors.INFO + 'username = '+ bcolors.RESET)
-    if " " in username or username =="":
-        print(bcolors.FAIL + 'invalid username...' + bcolors.RESET)
+    user = input(bcolors.INFO + 'user = '+ bcolors.RESET)
+    if " " in user or user =="":
+        print(bcolors.FAIL + 'invalid user...' + bcolors.RESET)
         return()
     
     password = input(bcolors.INFO + 'password = '+ bcolors.RESET)
     if " " in password or password =="":
         print(bcolors.FAIL + 'invalid password...' + bcolors.RESET)
         return()
+
+    try:
+        sipp_host = input(bcolors.INFO + 'sipp_host = '+ bcolors.RESET )
+        ip = ipaddress.ip_address(sipp_host)
+        #print(f'{ip} is correct. Version: IPv{ip.version}')
+    except ValueError:
+        print(bcolors.FAIL + 'invalid ip address...' + bcolors.RESET)
+        return()
+
+    sipp_user = input(bcolors.INFO + 'sipp_user = '+ bcolors.RESET)
+    if " " in sipp_user or sipp_user =="":
+        print(bcolors.FAIL + 'invalid user...' + bcolors.RESET)
+        return()
     
+    sipp_password = input(bcolors.INFO + 'password = '+ bcolors.RESET)
+    if " " in sipp_password or sipp_password =="":
+        print(bcolors.FAIL + 'invalid password...' + bcolors.RESET)
+        return()
+
     choice = input(bcolors.WARNING + 'edit the configuration? [YES] ' + bcolors.RESET)
     if choice in ["YES"]:
         
         config = ConfigObj('configfile.ini')
         config['SERVER_' + str(servernumber)] = {}
         config['SERVER_' + str(servernumber)]['host'] = host
-        config['SERVER_' + str(servernumber)]['user'] = username
+        config['SERVER_' + str(servernumber)]['user'] = user
         config['SERVER_' + str(servernumber)]['password'] = password
+        config['SERVER_' + str(servernumber)]['sipp_host'] = sipp_host
+        config['SERVER_' + str(servernumber)]['sipp_user'] = sipp_user
+        config['SERVER_' + str(servernumber)]['sipp_password'] = sipp_password
         config.write()
         print(bcolors.OK + 'done.' + bcolors.RESET)    
 
@@ -234,18 +276,23 @@ def checkservers():
         host =  element['host']
         user =  element['user']
         password =  element['password']
+        sipp_host =  element['sipp_host']
+        sipp_user =  element['sipp_user']
+        sipp_password =  element['sipp_password']
         print('    [' + SECTION + ']')
         print('    host = ' + host)
-        print('    user = ' + user)
-        print('    password = ' + password)
+        #print('    user = ' + user)
+        #print('    password = ' + password)
         
+        print(bcolors.INFO + 'pinging...', end='')
         if ping_ip(host):
-            print(bcolors.INFO + 'pinging host...      '+ bcolors.OKV + 'ping ok' + bcolors.RESET)
+            print(bcolors.OKV + '           ping ok' + bcolors.RESET)
         else:
-            print(bcolors.INFO + 'pinging host...      '+ bcolors.FAILV + 'unreachable' + bcolors.RESET)
-  
+            print(bcolors.FAILV + 'unreachable' + bcolors.RESET)
+
+        print(bcolors.INFO + 'remote ssh access... ', end='')
         if ssh_ip(host, user, password, cmdx):
-            print(bcolors.INFO + 'remote ssh access... '+ bcolors.OKV + 'established' + bcolors.RESET)
+            print(bcolors.OKV + 'established' + bcolors.RESET)
             
             cmdx='sudo service aeonix status'
             anxlist = []
@@ -254,7 +301,7 @@ def checkservers():
             countrunning = anxlist.count('running')
             countstopped = anxlist.count('stopped')
             if countrunning == 6:
-                print(bcolors.INFO + 'aeonix server is running properly'+ bcolors.RESET)
+                print(bcolors.INFO + 'aeonix server is running'+ bcolors.RESET)
             else:
                 print(bcolors.WARNING + 'aeonix server is not running properly.'+ bcolors.RESET)
                 print(bcolors.WARNING + str(countstopped) + ' out of 6 services are not running, please check...'+ bcolors.RESET)
@@ -266,13 +313,28 @@ def checkservers():
             countrunning = acclist.count('running')
             countstopped = acclist.count('stopped')
             if countrunning == 2:
-                print(bcolors.INFO + 'acc server is running properly'+ bcolors.RESET)
-            else:
+                print(bcolors.INFO + 'acc server is running'+ bcolors.RESET)
+            elif countstopped <=2 and countstopped > 0:
                 print(bcolors.WARNING + 'acc server is not running properly.'+ bcolors.RESET)
                 print(bcolors.WARNING + str(countstopped) + ' out of 2 services are not running, please check...'+ bcolors.RESET)
+            else:
+                print(bcolors.WARNING + 'acc server is not installed.'+ bcolors.RESET)
 
         else:
-            print(bcolors.INFO + 'remote ssh access... '+ bcolors.FAILV + 'timeout' + bcolors.RESET)
+            print(bcolors.FAILV + 'timeout' + bcolors.RESET)
+
+        print('    sipp_host = ' + sipp_host)
+        print(bcolors.INFO + 'pinging...', end='')
+        if ping_ip(sipp_host):
+            print(bcolors.OKV + '           ping ok' + bcolors.RESET)
+        else:
+            print(bcolors.FAILV + '           unreachable' + bcolors.RESET)
+
+        print(bcolors.INFO + 'remote ssh access... ', end='')
+        if ssh_ip(sipp_host, sipp_user, sipp_password, cmdx):
+            print(bcolors.OKV + 'established' + bcolors.RESET)
+        else:
+            print(bcolors.FAILV + 'timeout' + bcolors.RESET)    
 
         #keep this section for open port scaning
         #print(bcolors.INFO + 'check port 3308...   ', end ='')
@@ -290,7 +352,10 @@ def serverelements(sectionnumber):
     host = config[SECTION]['host']
     user = config[SECTION]['user']
     password = config[SECTION]['password']
-    serverdict = {'section':SECTION, 'host': host, 'user': user, 'password':password}
+    sipp_host = config[SECTION]['sipp_host']
+    sipp_user = config[SECTION]['sipp_user']
+    sipp_password = config[SECTION]['sipp_password']
+    serverdict = {'section':SECTION, 'host': host, 'user': user, 'password':password, 'sipp_host': sipp_host, 'sipp_user': sipp_user, 'sipp_password':sipp_password}
     #print(serverdict['section'])
     return(serverdict)
 

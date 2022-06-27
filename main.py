@@ -23,7 +23,7 @@ def main_menu():
     print(bcolors.RESET)
     prompt = """
     Aeonix Contact Center Main Menu
-    1 -- environment setup
+    1 -- environment status and setup
     2 -- service options
     3 -- database options
     4 -- quit\n
