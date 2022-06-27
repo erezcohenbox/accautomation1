@@ -83,9 +83,20 @@ def serviceMenu():
     choice = input(prompt)
 
     if choice in ["1"]:
-        acc_server_status = ssh_execute.service('accd', 'status')
-        print(bcolors.INFO + '    > service accd is ' + acc_server_status.split(" ")[2] + bcolors.RESET)
-        print(bcolors.INFO + '    > service accwebappsd is ' + acc_server_status.split(" ")[11] + bcolors.RESET)
+        #acc_server_status = ssh_execute.service('accd', 'status')
+        #print(bcolors.INFO + '    > service accd is ' + acc_server_status.split(" ")[2] + bcolors.RESET)
+        #print(bcolors.INFO + '    > service accwebappsd is ' + acc_server_status.split(" ")[11] + bcolors.RESET)
+        acclist=[]
+        #anxlist=[]
+        acclist = ssh_execute.service('accd', 'status')
+        #anxlist = ssh_execute.service('aeonix', 'status')
+        #print(anxlist)
+        print(acclist)
+        count = acclist.count('running')
+        print(count)
+        #print(aeonix_server_status)
+        #print(bcolors.INFO + '    > service aeonixWD is ' + aeonix_server_status.split(" ")[4] + bcolors.RESET)
+        #print(bcolors.INFO + '    > service aeonixWEB is ' + aeonix_server_status.split(" ")[11] + bcolors.RESET)
         serviceMenu()
     elif choice in ["2"]:
         acc_server_status = ssh_execute.service('accd', 'restart')

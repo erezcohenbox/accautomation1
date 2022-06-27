@@ -1,13 +1,13 @@
 import paramiko
 
-def service(service,command):
-    import paramiko
-    ip = '10.1.16.55'
+def service():
+    #import paramiko
+    ip = '10.2.4.72'
     port = 22
     username = 'aeonixadmin'
     password = 'anx'
 
-    cmd = 'sudo service ' + ' ' + service + ' ' + command
+    cmd = 'sudo service aeonix status'
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -16,4 +16,6 @@ def service(service,command):
     stdin, stdout, stderr = ssh.exec_command(cmd)
     outlines = stdout.readlines()
     response = ''.join(outlines)
+    print(response)
     return (response)
+

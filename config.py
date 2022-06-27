@@ -37,7 +37,7 @@ def checkconfigstatus():
 def setconfigfile():
     fileoptions = checkconfigstatus()
     
-    prompt = """
+    prompt = f"""
     Aeonix Contact Center environment configuration Menu
     1 -- add a new server
     2 -- edit a server
@@ -75,7 +75,7 @@ def countsections():
 def addsection():
     config = ConfigObj('configfile.ini')
     servernumber = len(config.sections) + 1
-    print(bcolors.WARNING + 'adding [SERVICE_' + str(servernumber) +'] section' + bcolors.RESET)
+    print(bcolors.WARNING + 'adding [SERVER_' + str(servernumber) +'] section' + bcolors.RESET)
     
     try:
         host = input(bcolors.INFO + 'host = '+ bcolors.RESET )
@@ -246,6 +246,31 @@ def checkservers():
   
         if ssh_ip(host, user, password, cmdx):
             print(bcolors.INFO + 'remote ssh access... '+ bcolors.OKV + 'established' + bcolors.RESET)
+            
+            cmdx='sudo service aeonix status'
+            anxlist = []
+            countrunning =''
+            anxlist = ssh_ip2(host, user, password, cmdx)
+            countrunning = anxlist.count('running')
+            countstopped = anxlist.count('stopped')
+            if countrunning == 6:
+                print(bcolors.INFO + 'aeonix server is running properly'+ bcolors.RESET)
+            else:
+                print(bcolors.WARNING + 'aeonix server is not running properly.'+ bcolors.RESET)
+                print(bcolors.WARNING + str(countstopped) + ' out of 6 services are not running, please check...'+ bcolors.RESET)
+            
+            cmdx='sudo service accd status'
+            acclist = []
+            countrunning =''
+            acclist = ssh_ip2(host, user, password, cmdx)
+            countrunning = acclist.count('running')
+            countstopped = acclist.count('stopped')
+            if countrunning == 2:
+                print(bcolors.INFO + 'acc server is running properly'+ bcolors.RESET)
+            else:
+                print(bcolors.WARNING + 'acc server is not running properly.'+ bcolors.RESET)
+                print(bcolors.WARNING + str(countstopped) + ' out of 2 services are not running, please check...'+ bcolors.RESET)
+
         else:
             print(bcolors.INFO + 'remote ssh access... '+ bcolors.FAILV + 'timeout' + bcolors.RESET)
 
@@ -282,7 +307,7 @@ def ping_ip(host):
             return False
 
 def ssh_ip(host, user, password, cmdx):
-    #import paramiko
+    import paramiko
     client = paramiko.client.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
@@ -290,6 +315,20 @@ def ssh_ip(host, user, password, cmdx):
         _stdin, _stdout,_stderr = client.exec_command(cmdx)
         client.close()
         return True
+    except Exception:
+        return False
+
+def ssh_ip2(host, user, password, cmdx):
+    import paramiko
+    client = paramiko.client.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    try:
+        client.connect(host, username=user, password=password)
+        _stdin, stdout,_stderr = client.exec_command(cmdx)
+        outlines = stdout.readlines()
+        response = ''.join(outlines)
+        client.close()
+        return (response)
     except Exception:
         return False
 

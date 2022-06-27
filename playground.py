@@ -99,7 +99,7 @@ for sectionnumber in range(1, len(config.sections)):
 
 
 def ssh_upload(host, user, password, cmdx):
-    import paramiko
+    #import paramiko
     #import os
     client = paramiko.client.SSHClient()
     client.load_system_host_keys()
