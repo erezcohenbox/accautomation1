@@ -8,7 +8,7 @@ import paramiko
 class bcolors:
     OK = '\033[92m    > '      #GREEN
     OKV = '\033[92m'           #GREEN
-    INFO = '\033[95m    > '    #PURPLE
+    INFO = '\033[96m    > '    #LIGHT BLUE
     WARNING = '\033[93m    > ' #YELLOW
     FAIL = '\033[91m    > '    #RED
     FAILV = '\033[91m'         #RED
@@ -304,7 +304,7 @@ def checkservers():
                 print(bcolors.INFO + 'aeonix server is running'+ bcolors.RESET)
             else:
                 print(bcolors.WARNING + 'aeonix server is not running properly.'+ bcolors.RESET)
-                print(bcolors.WARNING + str(countstopped) + ' out of 6 services are not running, please check...'+ bcolors.RESET)
+                print(bcolors.WARNING + str(countstopped) + ' out of it\'s 6 services are not running, please check...'+ bcolors.RESET)
             
             cmdx='sudo service accd status'
             acclist = []
@@ -316,7 +316,7 @@ def checkservers():
                 print(bcolors.INFO + 'acc server is running'+ bcolors.RESET)
             elif countstopped <=2 and countstopped > 0:
                 print(bcolors.WARNING + 'acc server is not running properly.'+ bcolors.RESET)
-                print(bcolors.WARNING + str(countstopped) + ' out of 2 services are not running, please check...'+ bcolors.RESET)
+                print(bcolors.WARNING + str(countstopped) + ' out of it\'s 2 services are not running, please check...'+ bcolors.RESET)
             else:
                 print(bcolors.WARNING + 'acc server is not installed.'+ bcolors.RESET)
 

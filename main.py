@@ -5,12 +5,14 @@ import ipaddress
 
 
 class bcolors:
-    OK = '\033[92m'      #GREEN
-    INFO = '\033[95m'    #PURPLE
-    WARNING = '\033[93m' #YELLOW
-    FAIL = '\033[91m'    #RED
-    RESET = '\033[0m'    #RESET
-    CLS = '\033[2J'      #CLEAR SCREEN
+    OK = '\033[92m    > '      #GREEN
+    OKV = '\033[92m'           #GREEN
+    INFO = '\033[96m    > '    #LIGHT BLUE
+    WARNING = '\033[93m    > ' #YELLOW
+    FAIL = '\033[91m    > '    #RED
+    FAILV = '\033[91m'         #RED
+    RESET = '\033[0m'          #RESET
+    CLS = '\033[2J'            #CLS
     #https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
 
 
