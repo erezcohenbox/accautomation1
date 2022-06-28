@@ -270,7 +270,7 @@ def checkservers():
     print()
     print(bcolors.INFO + 'configuration contains ' + str(len(config.sections)) + ' server(s) ' + bcolors.RESET)
     for sectionnumber in range(1, len(config.sections) + 1):
-        print()
+        print('    ' + '-' * 60)
         element = serverelements(sectionnumber)
         SECTION = element['section']
         host =  element['host']
@@ -279,6 +279,7 @@ def checkservers():
         sipp_host =  element['sipp_host']
         sipp_user =  element['sipp_user']
         sipp_password =  element['sipp_password']
+        #print('    ' + '-' * 60)
         print('    [' + SECTION + ']')
         print('    host = ' + host)
         #print('    user = ' + user)
@@ -302,10 +303,12 @@ def checkservers():
             countstopped = anxlist.count('stopped')
             if countrunning == 6:
                 print(bcolors.INFO + 'aeonix server is running'+ bcolors.RESET)
-            else:
+            elif countstopped <=6 and countstopped > 0:
                 print(bcolors.WARNING + 'aeonix server is not running properly.'+ bcolors.RESET)
                 print(bcolors.WARNING + str(countstopped) + ' out of it\'s 6 services are not running, please check...'+ bcolors.RESET)
-            
+            else:
+                print(bcolors.WARNING + 'aeonix server is not installed.'+ bcolors.RESET)
+
             cmdx='sudo service accd status'
             acclist = []
             countrunning =''
@@ -343,7 +346,8 @@ def checkservers():
         #else:
         #    print('port is not open')
         #print()
-
+    print('    ' + '-' * 60)
+    
 def serverelements(sectionnumber):
     config = ConfigObj('configfile.ini')
     serverdict = {}
