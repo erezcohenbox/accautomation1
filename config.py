@@ -289,7 +289,7 @@ def checkservers():
         if ping_ip(host):
             print(bcolors.OKV + '           ping ok' + bcolors.RESET)
         else:
-            print(bcolors.FAILV + 'unreachable' + bcolors.RESET)
+            print(bcolors.FAILV + '           unreachable' + bcolors.RESET)
 
         print(bcolors.INFO + 'remote ssh access... ', end='')
         if ssh_ip(host, user, password, cmdx):
@@ -347,7 +347,7 @@ def checkservers():
         #    print('port is not open')
         #print()
     print('    ' + '-' * 60)
-    
+
 def serverelements(sectionnumber):
     config = ConfigObj('configfile.ini')
     serverdict = {}
