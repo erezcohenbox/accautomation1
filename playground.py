@@ -98,7 +98,7 @@ for sectionnumber in range(1, len(config.sections)):
 '''
 
 
-def ssh_upload(host, user, password, cmdx):
+def ssh_uploadfile(host, user, password, cmdx):
     #import paramiko
     #import os
     client = paramiko.client.SSHClient()
@@ -112,9 +112,58 @@ def ssh_upload(host, user, password, cmdx):
     sftp.put(r"C:\temp\tcmd1000x64.exe","/home/aeonixadmin/upgrade/tcmd1000x64.exe")
     sftp.close()
     transport.close()
-   
 
-ssh_upload('10.1.16.55','aeonixadmin','anx', 'pwd')
+def ssh_readfile(host, user, password): 
+    commands = [
+    "sed -n '4p' /home/aeonixadmin/aeonix/MANIFEST.MF |tr -c -d 0-9.",
+    "cat /opt/acc/bin/version |tr -c -d 0-9.",
+    "uname -a",
+    "df -h"
+    ]
+    
+    # initialize the SSH client
+    client = paramiko.SSHClient()
+    # add to known hosts
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    try:
+        client.connect(hostname=host, username=user, password=password)
+    except:
+        print("[!] Cannot connect to the SSH Server")
+        exit()
+
+    for command in commands:
+        print("="*50, command, "="*50)
+        stdin, stdout, stderr = client.exec_command(command)
+        print(stdout.read().decode())
+        err = stderr.read().decode()
+        if err:
+            print(err)
+
+#ssh_readfile('10.1.16.55', 'aeonixadmin', 'anx')
+
+# pip install pysphere
+#from pysphere import VIServer, VIProperty, MORTypes
+#from pysphere.resources import VimService_services as VI
+#from pysphere.vi_task import VITask
+# https://jensd.be/370/linux/create-a-new-virtual-machine-in-vsphere-with-python-pysphere-and-the-vmware-api
+# https://stackoverflow.com/questions/35197979/getting-error-while-logging-in-to-guest-vm-using-pysphere
+
+def connectToHost(host,host_user,host_pw):
+    from pysphere import VIServer, VIProperty, MORTypes
+    from pysphere.resources import VimService_services as VI
+    from pysphere.vi_task import VITask
+    #create server object
+    s=VIServer()
+    #connect to the host
+    try:
+        s.connect(host,host_user,host_pw)
+        return s
+    except VIApiException, err:
+        print "Cannot connect to host: "+host+" error message: "+err
+
+connectToHost('10.1.16.52','root', 'tadirantele' )
+
+#ssh_upload('10.1.16.55','aeonixadmin','anx', 'pwd')
 #checkservers()
 #printsections()
 
