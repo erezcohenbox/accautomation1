@@ -139,7 +139,7 @@ def ssh_readfile(host, user, password):
         if err:
             print(err)
 
-#ssh_readfile('10.1.16.55', 'aeonixadmin', 'anx')
+ssh_readfile('172.28.9.221', 'aeonixadmin', 'anx')
 
 # pip install pysphere
 #from pysphere import VIServer, VIProperty, MORTypes
@@ -153,17 +153,19 @@ def connectToHost(host,host_user,host_pw):
     from pysphere.resources import VimService_services as VI
     from pysphere.vi_task import VITask
     #create server object
-    s=VIServer()
+    #s=VIServer()
     #connect to the host
-    try:
-        s.connect(host,host_user,host_pw)
-        return s
-    except VIApiException, err:
-        print "Cannot connect to host: "+host+" error message: "+err
+    #try:
+    #   s.connect(host,host_user,host_pw)
+    #   return s
+    #except VIApiException, err:
+    #   print "Cannot connect to host: "+host+" error message: "+err
 
-connectToHost('10.1.16.52','root', 'tadirantele' )
+#connectToHost('10.1.16.52','root', 'tadirantele' )
 
 #ssh_upload('10.1.16.55','aeonixadmin','anx', 'pwd')
 #checkservers()
 #printsections()
 
+#import pysipp
+#pysipp.client(destaddr=('10.10.8.88', 5060))()
