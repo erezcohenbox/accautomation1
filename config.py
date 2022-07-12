@@ -239,15 +239,14 @@ def overviewconfigfile():
         configfile = open('configfile.ini',"r")
         configfilelines = configfile.readlines()
         count = 0
-        #print ('      '+ '-' * 20)
+        print(bcolors.INFO +'configuration file contains ' + str(len(config.sections)) + ' server(s) sections' + bcolors.RESET)
         for line in configfilelines:
             count += 1
             if line[0] =='[':
-                print()
+                print('      ' + '-' * 60)
             print("      {}".format(line.strip()))
-        print ()
         configfile.close()
-        print(bcolors.INFO +'configuration file contains ' + str(len(config.sections)) + ' server(s)' + bcolors.RESET)
+        print('      ' + '-' * 60)
         reorderconfigfile()
     else:
         print(bcolors.FAIL + 'configuration file is empty.' + bcolors.RESET)
@@ -268,9 +267,9 @@ def checkservers():
     element ={}
     config = ConfigObj('configfile.ini')
     print()
-    print(bcolors.INFO + 'configuration contains ' + str(len(config.sections)) + ' server(s) ' + bcolors.RESET)
+    print(bcolors.INFO + 'configuration contains ' + str(len(config.sections)) + ' server(s) sections' + bcolors.RESET)
     for sectionnumber in range(1, len(config.sections) + 1):
-        print('    ' + '-' * 60)
+        print('      ' + '-' * 60)
         element = serverelements(sectionnumber)
         SECTION = element['section']
         host =  element['host']
@@ -279,12 +278,9 @@ def checkservers():
         sipp_host =  element['sipp_host']
         sipp_user =  element['sipp_user']
         sipp_password =  element['sipp_password']
-        #print('    ' + '-' * 60)
-        print('    [' + SECTION + ']')
-        print('    host = ' + host)
-        #print('    user = ' + user)
-        #print('    password = ' + password)
-        
+
+        print('      [' + SECTION + ']')
+        print('      host = ' + host)
         print(bcolors.INFO + 'pinging...', end='')
         if ping_ip(host):
             print(bcolors.OKV + '           ping ok' + bcolors.RESET)
@@ -294,7 +290,9 @@ def checkservers():
         print(bcolors.INFO + 'remote ssh access... ', end='')
         if ssh_ip(host, user, password, cmdx):
             print(bcolors.OKV + 'established' + bcolors.RESET)
-            
+            cmdv="sudo sed -n '4p' /home/aeonixadmin/aeonix/MANIFEST.MF |tr -c -d 0-9."
+            anxver = ssh_ip2(host, user, password, cmdv)
+            #print(bcolors.INFO + 'Aeonix version ' + str(anxver) + bcolors.RESET)
             cmdx='sudo service aeonix status'
             anxlist = []
             countrunning =''
@@ -302,13 +300,16 @@ def checkservers():
             countrunning = anxlist.count('running')
             countstopped = anxlist.count('stopped')
             if countrunning == 6:
-                print(bcolors.INFO + 'aeonix server is running'+ bcolors.RESET)
+                print(bcolors.INFO + 'aeonix server ' + str(anxver) + ' is running'+ bcolors.RESET)
             elif countstopped <=6 and countstopped > 0:
-                print(bcolors.WARNING + 'aeonix server is not running properly.'+ bcolors.RESET)
+                print(bcolors.WARNING + 'aeonix server ' + str(anxver) + ' is not running properly.'+ bcolors.RESET)
                 print(bcolors.WARNING + str(countstopped) + ' out of it\'s 6 services are not running, please check...'+ bcolors.RESET)
             else:
                 print(bcolors.WARNING + 'aeonix server is not installed.'+ bcolors.RESET)
 
+            cmdv="sudo cat /opt/acc/bin/version |tr -c -d 0-9."
+            accver = ssh_ip2(host, user, password, cmdv)
+            #print(bcolors.INFO + 'ACC version ' + str(anxver) + bcolors.RESET)
             cmdx='sudo service accd status'
             acclist = []
             countrunning =''
@@ -316,9 +317,9 @@ def checkservers():
             countrunning = acclist.count('running')
             countstopped = acclist.count('stopped')
             if countrunning == 2:
-                print(bcolors.INFO + 'acc server is running'+ bcolors.RESET)
+                print(bcolors.INFO + 'acc server ' + str(accver) + ' is running'+ bcolors.RESET)
             elif countstopped <=2 and countstopped > 0:
-                print(bcolors.WARNING + 'acc server is not running properly.'+ bcolors.RESET)
+                print(bcolors.WARNING + 'acc server ' + str(accver) + ' is not running properly.'+ bcolors.RESET)
                 print(bcolors.WARNING + str(countstopped) + ' out of it\'s 2 services are not running, please check...'+ bcolors.RESET)
             else:
                 print(bcolors.WARNING + 'acc server is not installed.'+ bcolors.RESET)
@@ -326,7 +327,7 @@ def checkservers():
         else:
             print(bcolors.FAILV + 'timeout' + bcolors.RESET)
 
-        print('    sipp_host = ' + sipp_host)
+        print('      sipp_host = ' + sipp_host)
         print(bcolors.INFO + 'pinging...', end='')
         if ping_ip(sipp_host):
             print(bcolors.OKV + '           ping ok' + bcolors.RESET)
@@ -346,7 +347,7 @@ def checkservers():
         #else:
         #    print('port is not open')
         #print()
-    print('    ' + '-' * 60)
+    print('      ' + '-' * 60)
 
 def serverelements(sectionnumber):
     config = ConfigObj('configfile.ini')

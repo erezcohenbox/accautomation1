@@ -9,6 +9,7 @@ class bcolors:
     OKV = '\033[92m'           #GREEN
     INFO = '\033[96m    > '    #LIGHT BLUE
     WARNING = '\033[93m    > ' #YELLOW
+    WARNINGV = '\033[93m'      #YELLOW
     FAIL = '\033[91m    > '    #RED
     FAILV = '\033[91m'         #RED
     RESET = '\033[0m'          #RESET
@@ -26,7 +27,7 @@ def main_menu():
     prompt = """
     Aeonix Contact Center Main Menu
     1 -- environment status and setup
-    2 -- service options
+    2 -- systems service options
     3 -- database options
     4 -- quit\n
     Enter your choice [1-4]: """
@@ -40,7 +41,7 @@ def main_menu():
     elif choice in ["3"]:
         serviceMenu()
     elif choice in ["4"]:
-        print(bcolors.WARNING + "    > goodbye...\n" + bcolors.RESET)
+        print(bcolors.WARNINGV + "    > goodbye...\n" + bcolors.RESET)
         sys.exit()  # Leave the program
     else:
         main_menu()
@@ -49,21 +50,24 @@ def main_menu():
 def environment_menu():
     prompt = """
     Aeonix Contact Center environment Menu
-    1 -- overview of environment status
-    2 -- set up the environment
-    3 -- go back\n
+    1 -- overview of environment configuration file
+    2 -- check environment status
+    3 -- set up the environment
+    4 -- go back\n
     Enter your choice [1-3]: """
     
     choice = input(prompt)
 
     if choice in ["1"]:
-        #config.overviewconfigfile()
-        config.checkservers()
+        config.overviewconfigfile()
         environment_menu()
     elif choice in ["2"]:
-        config.setconfigfile()
+        config.checkservers()
         environment_menu()
     elif choice in ["3"]:
+        config.setconfigfile()
+        environment_menu()
+    elif choice in ["4"]:
         main_menu()
     else:
         environment_menu()
