@@ -25,9 +25,9 @@ def main():
 def main_menu():
     print(bcolors.RESET)
     prompt = """
-    Aeonix Contact Center Main Menu
+    Aeonix Load Gen main menu
     1 -- environment status and setup
-    2 -- systems service options
+    2 -- prepare for load running
     3 -- database options
     4 -- quit\n
     Enter your choice [1-4]: """
@@ -49,7 +49,7 @@ def main_menu():
 
 def environment_menu():
     prompt = """
-    Aeonix Contact Center environment Menu
+    Aeonix Load Gen environment menu
     1 -- overview of environment configuration file
     2 -- check environment status
     3 -- set up the environment
@@ -75,7 +75,7 @@ def environment_menu():
 
 def serviceMenu():
     prompt = """
-    Aeonix Contact Center Service Menu
+    Aeonix Load Gen prepare for load running menu
     1 -- check status
     2 -- restart service
     3 -- restart web service
