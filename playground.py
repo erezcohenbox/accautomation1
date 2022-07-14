@@ -115,10 +115,7 @@ def ssh_uploadfile(host, user, password, cmdx):
 
 def ssh_readfile(host, user, password): 
     commands = [
-    "sed -n '4p' /home/aeonixadmin/aeonix/MANIFEST.MF |tr -c -d 0-9.",
-    "cat /opt/acc/bin/version |tr -c -d 0-9.",
-    "uname -a",
-    "df -h"
+    "sudo pgrep sipp",
     ]
     
     # initialize the SSH client
@@ -139,7 +136,21 @@ def ssh_readfile(host, user, password):
         if err:
             print(err)
 
-ssh_readfile('172.28.9.221', 'aeonixadmin', 'anx')
+#ssh_readfile('172.28.8.215', 'erezcohen', 'tadirantele')
+
+def ssh_ip(host, user, password, cmdx):
+    import paramiko
+    client = paramiko.client.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    try:
+        client.connect(host, username=user, password=password)
+        stdin, stdout, stderr = client.exec_command(cmdx)
+        client.close()
+        return True
+    except Exception:
+        return False
+cmdx='killall sippx'
+print(ssh_ip('172.28.8.215', 'erezcohen', 'tadirantele', cmdx))
 
 # pip install pysphere
 #from pysphere import VIServer, VIProperty, MORTypes

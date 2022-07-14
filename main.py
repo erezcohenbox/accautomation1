@@ -37,7 +37,7 @@ def main_menu():
     if choice in ["1"]:
         environment_menu()
     elif choice in ["2"]:
-        serviceMenu()
+        prepare_menu()
     elif choice in ["3"]:
         serviceMenu()
     elif choice in ["4"]:
@@ -73,10 +73,10 @@ def environment_menu():
         environment_menu()
 
 
-def serviceMenu():
+def prepare_menu():
     prompt = """
     Aeonix Load Gen prepare for load running menu
-    1 -- check status
+    1 -- check environment status
     2 -- restart service
     3 -- restart web service
     4 -- start service
@@ -89,21 +89,8 @@ def serviceMenu():
     choice = input(prompt)
 
     if choice in ["1"]:
-        #acc_server_status = ssh_execute.service('accd', 'status')
-        #print(bcolors.INFO + '    > service accd is ' + acc_server_status.split(" ")[2] + bcolors.RESET)
-        #print(bcolors.INFO + '    > service accwebappsd is ' + acc_server_status.split(" ")[11] + bcolors.RESET)
-        acclist=[]
-        #anxlist=[]
-        acclist = ssh_execute.service('accd', 'status')
-        #anxlist = ssh_execute.service('aeonix', 'status')
-        #print(anxlist)
-        print(acclist)
-        count = acclist.count('running')
-        print(count)
-        #print(aeonix_server_status)
-        #print(bcolors.INFO + '    > service aeonixWD is ' + aeonix_server_status.split(" ")[4] + bcolors.RESET)
-        #print(bcolors.INFO + '    > service aeonixWEB is ' + aeonix_server_status.split(" ")[11] + bcolors.RESET)
-        serviceMenu()
+        config.checkservers()
+        environment_menu()
     elif choice in ["2"]:
         acc_server_status = ssh_execute.service('accd', 'restart')
         print('\t> done.')
