@@ -10,6 +10,7 @@ class bcolors:
     OKV = '\033[92m'           #GREEN
     INFO = '\033[96m    > '    #LIGHT BLUE
     WARNING = '\033[93m    > ' #YELLOW
+    WARNINGV = '\033[93m'      #YELLOW
     FAIL = '\033[91m    > '    #RED
     FAILV = '\033[91m'         #RED
     RESET = '\033[0m'          #RESET

@@ -29,9 +29,9 @@ def main_menu():
     |A|e|o|n|i|x| |L|o|a|d| |G|e|n|
     +-+-+-+-+-+-+ +-+-+-+-+ +-+-+-+  
     Aeonix Load Gen main menu
-    1 -- environment status and setup
+    1 -- environment configuration and status
     2 -- prepare for load running
-    3 -- database options
+    3 -- run load tests
     4 -- quit\n
     Enter your choice [1-4]: """
 
@@ -55,7 +55,6 @@ def environment_menu():
     Aeonix Load Gen environment menu
     1 -- configure the environment
     2 -- check environment status
-    3 -- prepare servers to run
     3 -- go back\n
     Enter your choice [1-3]: """
     

@@ -136,7 +136,7 @@ def ssh_readfile(host, user, password):
         if err:
             print(err)
 
-ssh_readfile('172.28.8.216', 'erezcohen', 'tadirantele')
+#ssh_readfile('172.28.8.216', 'erezcohen', 'tadirantele')
 
 def ssh_ip(host, user, password, cmdx):
     import paramiko
@@ -180,3 +180,25 @@ def connectToHost(host,host_user,host_pw):
 
 #import pysipp
 #pysipp.client(destaddr=('10.10.8.88', 5060))()
+
+def create_csv_files(users):
+    import os
+    path = os.path.join ('scripts/', str(users)+'_users')
+    os.makedirs(path, exist_ok = True)
+    #fieldnames =  ['User ID', 'Internal aliases', 'Description', 'Phone name', 'Phone type', 'Phone Domain']
+    with open(path+'/import_'+str(users)+'_users.csv', 'w') as csvfile:
+        for counter in range(30000, int(30000 + users)):
+            csvfile.write(str(counter) +','+str(counter) +','+str(counter) +'_Desc,'+str(counter)+',SIP terminal'+',aeonix.com\n')
+            #print(counter)
+    with open(path+'/register.csv', 'w') as csvfile:
+        for counter in range(30000, int(30000 + users)):
+            csvfile.write(str(counter) +';[authentication username='+str(counter) +' password=Aeonix123@]\n')
+            #print(counter)
+    with open(path+'/call_answer.csv', 'w') as csvfile:
+        csvfile.write('SEQUENTIAL\n')
+        for counter in range(30000, int(30000 + users), 2):
+            csvfile.write(str(counter) + ';' + str(counter+1) +';\n')
+            #print(counter)
+    print("Finished")
+
+create_csv_files(15000)
