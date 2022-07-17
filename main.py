@@ -25,6 +25,9 @@ def main():
 def main_menu():
     print(bcolors.RESET)
     prompt = """
+    +-+-+-+-+-+-+ +-+-+-+-+ +-+-+-+
+    |A|e|o|n|i|x| |L|o|a|d| |G|e|n|
+    +-+-+-+-+-+-+ +-+-+-+-+ +-+-+-+  
     Aeonix Load Gen main menu
     1 -- environment status and setup
     2 -- prepare for load running
@@ -50,24 +53,21 @@ def main_menu():
 def environment_menu():
     prompt = """
     Aeonix Load Gen environment menu
-    1 -- overview of environment configuration file
+    1 -- configure the environment
     2 -- check environment status
-    3 -- set up the environment
-    4 -- go back\n
+    3 -- prepare servers to run
+    3 -- go back\n
     Enter your choice [1-3]: """
     
     choice = input(prompt)
 
     if choice in ["1"]:
-        config.overviewconfigfile()
+        config.setconfigfile()
         environment_menu()
     elif choice in ["2"]:
         config.checkservers()
         environment_menu()
     elif choice in ["3"]:
-        config.setconfigfile()
-        environment_menu()
-    elif choice in ["4"]:
         main_menu()
     else:
         environment_menu()

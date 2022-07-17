@@ -38,13 +38,14 @@ def setconfigfile():
     fileoptions = checkconfigstatus()
     
     prompt = f"""
-    Aeonix Contact Center environment configuration Menu
+    Aeonix Load Gen environment configuration menu
     1 -- add a new server
     2 -- edit a server
     3 -- delete a server
-    4 -- initialize a configuration file (if not exist)
-    5 -- clear the configuration file content
-    6 -- go back
+    4 -- configuraion overview
+    5 -- initialize a configuration file (if not exist)
+    6 -- clear the configuration file content
+    7 -- go back
     note that you can use the {', '.join(fileoptions)} option(s) only\n
     Enter your choice [1-6]: """ 
     
@@ -60,10 +61,12 @@ def setconfigfile():
         if 'delete' in fileoptions:
             deletesection()
     elif choice in ["4"]:
-        if 'initialize' in fileoptions: initconfigfile()
+        overviewconfigfile()
     elif choice in ["5"]:
+        if 'initialize' in fileoptions: initconfigfile()
+    elif choice in ["6"]:
         if 'clear' in fileoptions: clearconfigfile()
-    elif choice in ["6"]: return()
+    elif choice in ["7"]: return()
     
     setconfigfile()
 

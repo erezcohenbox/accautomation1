@@ -115,7 +115,7 @@ def ssh_uploadfile(host, user, password, cmdx):
 
 def ssh_readfile(host, user, password): 
     commands = [
-    "sudo pgrep sipp",
+    "killall sipp \n cd /home/erezcohen/simulator/sipp_sim_from_pc \n rm -rf *_.csv *_errors.log \n pwd \n"
     ]
     
     # initialize the SSH client
@@ -136,7 +136,7 @@ def ssh_readfile(host, user, password):
         if err:
             print(err)
 
-#ssh_readfile('172.28.8.215', 'erezcohen', 'tadirantele')
+ssh_readfile('172.28.8.216', 'erezcohen', 'tadirantele')
 
 def ssh_ip(host, user, password, cmdx):
     import paramiko
@@ -149,8 +149,8 @@ def ssh_ip(host, user, password, cmdx):
         return True
     except Exception:
         return False
-cmdx='killall sippx'
-print(ssh_ip('172.28.8.215', 'erezcohen', 'tadirantele', cmdx))
+#cmdx='killall sippx'
+#print(ssh_ip('172.28.8.215', 'erezcohen', 'tadirantele', cmdx))
 
 # pip install pysphere
 #from pysphere import VIServer, VIProperty, MORTypes
