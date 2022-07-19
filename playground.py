@@ -182,23 +182,67 @@ def connectToHost(host,host_user,host_pw):
 #pysipp.client(destaddr=('10.10.8.88', 5060))()
 
 def create_csv_files(users):
-    import os
+    import os, shutil
+
+    config = ConfigObj('configfile.ini')
+    serverdict = {}
+    serverdict.clear
+    sections = len(config.sections)
+    
+    startuser=30000
+    shutil.rmtree('scripts/', ignore_errors=True)
     path = os.path.join ('scripts/', str(users)+'_users')
     os.makedirs(path, exist_ok = True)
     #fieldnames =  ['User ID', 'Internal aliases', 'Description', 'Phone name', 'Phone type', 'Phone Domain']
-    with open(path+'/import_'+str(users)+'_users.csv', 'w') as csvfile:
+    with open(path+'/import_'+str(users)+'_users.csv', 'w') as usersfile:
         for counter in range(30000, int(30000 + users)):
-            csvfile.write(str(counter) +','+str(counter) +','+str(counter) +'_Desc,'+str(counter)+',SIP terminal'+',aeonix.com\n')
+            usersfile.write(str(counter) +','+str(counter) +','+str(counter) +'_Desc,'+str(counter)+',SIP terminal'+',aeonix.com\n')
             #print(counter)
-    with open(path+'/register.csv', 'w') as csvfile:
-        for counter in range(30000, int(30000 + users)):
-            csvfile.write(str(counter) +';[authentication username='+str(counter) +' password=Aeonix123@]\n')
-            #print(counter)
-    with open(path+'/call_answer.csv', 'w') as csvfile:
-        csvfile.write('SEQUENTIAL\n')
-        for counter in range(30000, int(30000 + users), 2):
-            csvfile.write(str(counter) + ';' + str(counter+1) +';\n')
-            #print(counter)
+    
+    for sectionnumber in range(1, sections + 1):
+        path = os.path.join ('scripts/', str(users)+'_users/server_'+str(sectionnumber))
+        print(path)
+        print(sectionnumber)
+        os.makedirs(path, exist_ok = True)
+        files = os.listdir('templates/')
+        [shutil.copy('templates/'+ fn, path) for fn in os.listdir('templates/')]
+        
+        SECTION = 'SERVER_' + str(sectionnumber) 
+        host = config[SECTION]['host']
+        user = config[SECTION]['user']
+        password = config[SECTION]['password']
+        sipp_host = config[SECTION]['sipp_host']
+        sipp_user = config[SECTION]['sipp_user']
+        sipp_password = config[SECTION]['sipp_password']
+        serverdict = {'section':SECTION, 'host': host, 'user': user, 'password':password, 'sipp_host': sipp_host, 'sipp_user': sipp_user, 'sipp_password':sipp_password}
+        print(serverdict['section'], serverdict['host'], serverdict['sipp_host'])
+        
+        replace_string(path+'/register.sh','[servers]', sipp_host + ' ' + host)
+        replace_string(path+'/answer.sh','[servers]', sipp_host + ' ' + host)
+        replace_string(path+'/call.sh','[servers]', sipp_host + ' ' + host)
+        replace_string(path+'/blf.sh','[servers]', sipp_host + ' ' + host)
+
+        with open(path+'/register.csv', 'w') as registerfile:
+            for counter in range(startuser, int(startuser + users/sections)):
+                registerfile.write(str(counter) +';[authentication username='+str(counter) +' password=Aeonix123@]\n')
+                #print(counter)
+        with open(path+'/call_answer.csv', 'w') as callanswerfile:
+            callanswerfile.write('SEQUENTIAL\n')
+            for counter in range(startuser, int(startuser + users/sections), 2):
+                callanswerfile.write(str(counter) + ';' + str(counter+1) +';\n')
+                #print(counter)
+        startuser = startuser + int(users/sections) 
     print("Finished")
 
-create_csv_files(15000)
+
+def replace_string(filepath, replace, with_string):
+    with open(filepath, 'r+') as f:
+        replace_string = f.read().replace(replace, with_string)
+    with open(filepath, 'w', newline='\n') as f:
+        f.write(replace_string)
+
+#servers = countsections()
+create_csv_files(10000)
+
+
+

@@ -27,7 +27,7 @@ def main_menu():
     prompt = """
     +-+-+-+-+-+-+ +-+-+-+-+ +-+-+-+
     |A|e|o|n|i|x| |L|o|a|d| |G|e|n|
-    +-+-+-+-+-+-+ +-+-+-+-+ +-+-+-+  
+    +-+-+-+-+-+-+ +-+-+-+-+ +-+-+-+
     Aeonix Load Gen main menu
     1 -- environment configuration and status
     2 -- prepare for load running
@@ -42,7 +42,7 @@ def main_menu():
     elif choice in ["2"]:
         prepare_menu()
     elif choice in ["3"]:
-        serviceMenu()
+        main_menu()
     elif choice in ["4"]:
         print(bcolors.WARNINGV + "    > goodbye...\n" + bcolors.RESET)
         sys.exit()  # Leave the program
