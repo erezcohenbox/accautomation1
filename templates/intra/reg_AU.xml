@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE scenario SYSTEM "5010.dtd">
+
+<scenario name="register_client">
+
+
+
+
+ 
+  <label id="1"/>
+
+
+  <send retrans="3000" >
+    <![CDATA[
+    
+    
+
+      REGISTER sip:[remote_ip]:[local_port] SIP/2.0
+      From: "[field0]" <sip:[field0]@[remote_ip]>;tag=[call_number]
+      To: <sip:[field0]@[remote_ip]>
+      Call-ID: [call_id]
+      CSeq: 1 REGISTER
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Max-Forwards: 70
+      Supported: 100rel,replaces
+      User-Agent: Tadiran T41G ver. 36.71.19.4
+      Contact: <sip:[field0]@[local_ip]:5061>
+      Expires: 3600
+      Content-Length: 0
+
+    ]]>
+  </send>
+  
+
+
+   <recv response="480"  optional="true" next= "1"  >
+    </recv>
+
+    <recv response="100"  optional="true"  >
+    </recv>
+   
+ <recv response="200"  optional="true" >
+    </recv>
+
+ 
+   <recv response="401" auth="true">
+
+    </recv>
+  
+    
+
+<send retrans="3000">
+    <![CDATA[
+
+REGISTER sip:[remote_ip]:[local_port] SIP/2.0
+Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+From:  "[field0]" <sip:[field0]@[remote_ip]:[remote_port]>;tag=[call_number]
+To: <sip:[field0]@[remote_ip]:[remote_port]>
+Call-ID: [call_id]
+CSeq: 2 REGISTER
+Max-Forwards: 70
+Supported: 100rel,replaces
+User-Agent: Tadiran T41G ver. 36.71.19.4
+Contact: <sip:[field0]@[local_ip]:5061>
+Expires: 3600
+[field1]
+Content-Length: 0
+
+    ]]>
+  </send>
+  
+  
+  <recv response="100"  optional="true"  >
+    </recv>
+
+  
+  <recv response="200" >
+    </recv>
+    
+    
+    
+    
+   <!-- KeepAlive -->
+    
+
+<label id="2"/>
+    
+<pause milliseconds="30000"/>
+
+
+  <send retrans="3000">
+    <![CDATA[
+    
+    
+
+      REGISTER sip:[remote_ip]:[local_port] SIP/2.0
+      From: "[field0]" <sip:[field0]@[remote_ip]>;tag=[call_number]
+      To: <sip:[field0]@[remote_ip]>
+      Call-ID: [call_id]
+      CSeq: [cseq] REGISTER
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Max-Forwards: 70
+      Supported: 100rel,replaces
+      User-Agent: Tadiran T41G ver. 36.71.19.4
+      Contact: <sip:[field0]@[local_ip]:5061>
+      Expires: 3600
+      Content-Length: 0
+
+    ]]>
+  </send>
+  
+
+  <recv response="100"  optional="true"  >
+    </recv>
+<recv response="200" optional="true"   next="2">
+    </recv>
+    
+   
+   <recv response="401" auth="true" >
+
+    </recv>
+  
+
+    
+   
+
+<send retrans="3000">
+    <![CDATA[
+
+REGISTER sip:[remote_ip]:[local_port] SIP/2.0
+Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+From:  "[field0]" <sip:[field0]@[remote_ip]:[remote_port]>;tag=[call_number]
+To: <sip:[field0]@[remote_ip]:[remote_port]>
+[last_Call-ID:]
+CSeq: [cseq] REGISTER
+Max-Forwards: 70
+Supported: 100rel,replaces
+User-Agent: Tadiran T41G ver. 36.71.19.4
+Contact: <sip:[field0]@[local_ip]:5061>
+Expires: 3600
+Content-Length: 0
+[field1]
+    ]]>
+  </send>
+  
+  
+  <recv response="100"  optional="true"  >
+    </recv>
+  <recv response="200"  next="2">
+    </recv>
+    
+  
+  
+  
+  
+  <!-- definition of the response time repartition table (unit is ms)   -->
+   
+<ResponseTimeRepartition value="1000,1500, 3500, 7500, 50, 11500"/>
+
+    
+    
+    
+
+
+</scenario>

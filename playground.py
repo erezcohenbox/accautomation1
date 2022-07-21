@@ -98,20 +98,8 @@ for sectionnumber in range(1, len(config.sections)):
 '''
 
 
-def ssh_uploadfile(host, user, password, cmdx):
-    #import paramiko
-    #import os
-    client = paramiko.client.SSHClient()
-    client.load_system_host_keys()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    transport = paramiko.Transport(host, 22)
-    transport.connect(username=user,password=password)
-    sftp = paramiko.SFTPClient.from_transport(transport)
-    #stdin,stdout,stderr = client.exec_command(cmdx)
-    
-    sftp.put(r"C:\temp\tcmd1000x64.exe","/home/aeonixadmin/upgrade/tcmd1000x64.exe")
-    sftp.close()
-    transport.close()
+
+
 
 def ssh_readfile(host, user, password): 
     commands = [
@@ -181,9 +169,10 @@ def connectToHost(host,host_user,host_pw):
 #import pysipp
 #pysipp.client(destaddr=('10.10.8.88', 5060))()
 
-def create_csv_files(users):
+def create_sipps_files(users, method):
     import os, shutil
 
+    load_method = 'templates/'+ method + '/'
     config = ConfigObj('configfile.ini')
     serverdict = {}
     serverdict.clear
@@ -191,21 +180,19 @@ def create_csv_files(users):
     
     startuser=30000
     shutil.rmtree('scripts/', ignore_errors=True)
-    path = os.path.join ('scripts/', str(users)+'_users')
-    os.makedirs(path, exist_ok = True)
+    local_path = os.path.join ('scripts/', str(users)+'_users')
+    remote_path = 'simulator/'
+    os.makedirs(local_path, exist_ok = True)
     #fieldnames =  ['User ID', 'Internal aliases', 'Description', 'Phone name', 'Phone type', 'Phone Domain']
-    with open(path+'/import_'+str(users)+'_users.csv', 'w') as usersfile:
+    with open(local_path+'/import_'+str(users)+'_users.csv', 'w') as usersfile:
         for counter in range(30000, int(30000 + users)):
             usersfile.write(str(counter) +','+str(counter) +','+str(counter) +'_Desc,'+str(counter)+',SIP terminal'+',aeonix.com\n')
-            #print(counter)
     
     for sectionnumber in range(1, sections + 1):
-        path = os.path.join ('scripts/', str(users)+'_users/server_'+str(sectionnumber))
-        print(path)
-        print(sectionnumber)
-        os.makedirs(path, exist_ok = True)
-        files = os.listdir('templates/')
-        [shutil.copy('templates/'+ fn, path) for fn in os.listdir('templates/')]
+        local_path = os.path.join ('scripts/', str(users)+'_users/server_'+str(sectionnumber))
+        os.makedirs(local_path, exist_ok = True)
+        files = os.listdir(load_method)
+        [shutil.copy(load_method + fn, local_path) for fn in os.listdir(load_method)]
         
         SECTION = 'SERVER_' + str(sectionnumber) 
         host = config[SECTION]['host']
@@ -215,24 +202,25 @@ def create_csv_files(users):
         sipp_user = config[SECTION]['sipp_user']
         sipp_password = config[SECTION]['sipp_password']
         serverdict = {'section':SECTION, 'host': host, 'user': user, 'password':password, 'sipp_host': sipp_host, 'sipp_user': sipp_user, 'sipp_password':sipp_password}
-        print(serverdict['section'], serverdict['host'], serverdict['sipp_host'])
+        #print(serverdict['section'], serverdict['host'], serverdict['sipp_host'])
         
-        replace_string(path+'/register.sh','[servers]', sipp_host + ' ' + host)
-        replace_string(path+'/answer.sh','[servers]', sipp_host + ' ' + host)
-        replace_string(path+'/call.sh','[servers]', sipp_host + ' ' + host)
-        replace_string(path+'/blf.sh','[servers]', sipp_host + ' ' + host)
+        replace_string(local_path +'/register.sh','[servers]', sipp_host + ' ' + host)
+        replace_string(local_path +'/answer.sh','[servers]', sipp_host + ' ' + host)
+        replace_string(local_path +'/call.sh','[servers]', sipp_host + ' ' + host)
+        replace_string(local_path +'/blf.sh','[servers]', sipp_host + ' ' + host)
 
-        with open(path+'/register.csv', 'w') as registerfile:
+        with open(local_path+'/register.csv', 'w') as registerfile:
             for counter in range(startuser, int(startuser + users/sections)):
                 registerfile.write(str(counter) +';[authentication username='+str(counter) +' password=Aeonix123@]\n')
-                #print(counter)
-        with open(path+'/call_answer.csv', 'w') as callanswerfile:
+        with open(local_path+'/call_answer.csv', 'w') as callanswerfile:
             callanswerfile.write('SEQUENTIAL\n')
             for counter in range(startuser, int(startuser + users/sections), 2):
                 callanswerfile.write(str(counter) + ';' + str(counter+1) +';\n')
-                #print(counter)
+        
+        ssh_upload_sipp_files(sipp_host, sipp_user, sipp_password, local_path, remote_path)
+        
         startuser = startuser + int(users/sections) 
-    print("Finished")
+    #print("Finished")
 
 
 def replace_string(filepath, replace, with_string):
@@ -241,8 +229,34 @@ def replace_string(filepath, replace, with_string):
     with open(filepath, 'w', newline='\n') as f:
         f.write(replace_string)
 
-#servers = countsections()
-create_csv_files(10000)
+
+def ssh_upload_sipp_files(host, user, password, local_path, remote_path):
+    client = paramiko.client.SSHClient()
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    transport = paramiko.Transport(host, 22)
+    transport.connect(username=user,password=password)
+    client.connect(hostname = host, username=user,password=password)
+    sftp = paramiko.SFTPClient.from_transport(transport)
+    try:
+        sftp.chdir(remote_path)
+        ssh_command = 'cd ' + remote_path + '; chmod +x *.sh ; ./prepare_to_run.sh'
+        stdin,stdout,stderr = client.exec_command(ssh_command)
+    except IOError:
+        sftp.mkdir(remote_path)
+        sftp.chdir(remote_path)
+    files = os.listdir(local_path)
+    
+    for filename in files:
+        sftp.put(local_path + '/' +filename, filename)
+    ssh_command = 'cd ' + remote_path + '; chmod +x *.sh'
+    stdin,stdout,stderr = client.exec_command(ssh_command)
+    sftp.close()
+    transport.close()
+    client.close()
 
 
+create_sipps_files(10000, 'intra')
+
+#
 
