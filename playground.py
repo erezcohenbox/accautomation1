@@ -169,7 +169,7 @@ def connectToHost(host,host_user,host_pw):
 #import pysipp
 #pysipp.client(destaddr=('10.10.8.88', 5060))()
 
-def create_sipps_files(users, method):
+def create_sim_files(users, startat, method):
     import os, shutil
 
     load_method = 'templates/'+ method + '/'
@@ -178,14 +178,14 @@ def create_sipps_files(users, method):
     serverdict.clear
     sections = len(config.sections)
     
-    startuser=30000
+    startuser=startat
     shutil.rmtree('scripts/', ignore_errors=True)
     local_path = os.path.join ('scripts/', str(users)+'_users')
     remote_path = 'simulator/'
     os.makedirs(local_path, exist_ok = True)
     #fieldnames =  ['User ID', 'Internal aliases', 'Description', 'Phone name', 'Phone type', 'Phone Domain']
     with open(local_path+'/import_'+str(users)+'_users.csv', 'w') as usersfile:
-        for counter in range(30000, int(30000 + users)):
+        for counter in range(startuser, int(startuser + users)):
             usersfile.write(str(counter) +','+str(counter) +','+str(counter) +'_Desc,'+str(counter)+',SIP terminal'+',aeonix.com\n')
     
     for sectionnumber in range(1, sections + 1):
@@ -205,11 +205,13 @@ def create_sipps_files(users, method):
         #print(serverdict['section'], serverdict['host'], serverdict['sipp_host'])
         
         replace_string(local_path +'/register.sh','[servers]', sipp_host + ' ' + host)
+        replace_string(local_path +'/register.sh','[users]', str(int(users/sections)))
         replace_string(local_path +'/answer.sh','[servers]', sipp_host + ' ' + host)
         replace_string(local_path +'/call.sh','[servers]', sipp_host + ' ' + host)
         replace_string(local_path +'/blf.sh','[servers]', sipp_host + ' ' + host)
 
         with open(local_path+'/register.csv', 'w') as registerfile:
+            registerfile.write('SEQUENTIAL\n')
             for counter in range(startuser, int(startuser + users/sections)):
                 registerfile.write(str(counter) +';[authentication username='+str(counter) +' password=Aeonix123@]\n')
         with open(local_path+'/call_answer.csv', 'w') as callanswerfile:
@@ -217,7 +219,7 @@ def create_sipps_files(users, method):
             for counter in range(startuser, int(startuser + users/sections), 2):
                 callanswerfile.write(str(counter) + ';' + str(counter+1) +';\n')
         
-        ssh_upload_sipp_files(sipp_host, sipp_user, sipp_password, local_path, remote_path)
+        sfpt_upload_sipp_files(sipp_host, sipp_user, sipp_password, local_path, remote_path)
         
         startuser = startuser + int(users/sections) 
     #print("Finished")
@@ -230,7 +232,7 @@ def replace_string(filepath, replace, with_string):
         f.write(replace_string)
 
 
-def ssh_upload_sipp_files(host, user, password, local_path, remote_path):
+def sfpt_upload_sipp_files(host, user, password, local_path, remote_path):
     client = paramiko.client.SSHClient()
     client.load_system_host_keys()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -256,7 +258,24 @@ def ssh_upload_sipp_files(host, user, password, local_path, remote_path):
     client.close()
 
 
-create_sipps_files(10000, 'intra')
-
+#create_sim_files(2000, 30000, 'intra')
+# how many users total, user starts at, run method
 #
 
+def testfile():
+    temp = ['2000', '30000', 'intra']
+    with open("temp.txt", "w") as tempfile:
+        tempfile.writelines(",".join(temp))
+        tempfile.close()
+
+    with open("temp.txt", "r") as tempfile:
+        joined_list = tempfile.read().split(',')
+        #print(joined_list)
+        tempfile.close()
+
+testfile()
+
+
+        #for items in temp:
+        #    tempfile.writelines(items + ', ')
+        #tempfile.close()

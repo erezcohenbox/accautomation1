@@ -1,6 +1,7 @@
 import os, sys
 import ssh_execute
 import config
+import prepare
 import ipaddress
 
 
@@ -27,7 +28,7 @@ def main_menu():
     prompt = """
     +-+-+-+-+-+-+ +-+-+-+-+ +-+-+-+
     |A|e|o|n|i|x| |L|o|a|d| |G|e|n|
-    +-+-+-+-+-+-+ +-+-+-+-+ +-+-+-+
+    +-+-+-+-+-+-+ +-+-+-+-+ +-+-+-+    
     Aeonix Load Gen main menu
     1 -- environment configuration and status
     2 -- prepare for load running
@@ -75,49 +76,29 @@ def environment_menu():
 def prepare_menu():
     prompt = """
     Aeonix Load Gen prepare for load running menu
-    1 -- check environment status
-    2 -- restart service
-    3 -- restart web service
-    4 -- start service
-    5 -- start web service
-    6 -- stop service
-    7 -- stop web service
-    8 -- go back\n
-    Enter your choice [1-8]: """
+    1 -- choose load type and capacity
+    2 -- generate load files and upload
+    3 -- restart the environmnet
+    4 -- go back\n
+    Enter your choice [1-4]: """
 
     choice = input(prompt)
 
     if choice in ["1"]:
-        config.checkservers()
-        environment_menu()
+        prepare.load_type_select()
+        prepare_menu()
     elif choice in ["2"]:
-        acc_server_status = ssh_execute.service('accd', 'restart')
-        print('\t> done.')
-        serviceMenu()
+        #prepare.create_sim_files(2000, 30000, 'intra')
+        prepare.create_sim_files()
+        prepare_menu()
     elif choice in ["3"]:
-        acc_server_status = ssh_execute.service('accwebappsd', 'restart')
-        print('\t> done.')
-        serviceMenu()
+        #acc_server_status = ssh_execute.service('accwebappsd', 'restart')
+        #print('\t> done.')
+        prepare_menu()
     elif choice in ["4"]:
-        acc_server_status = ssh_execute.service('accd', 'start')
-        print('\t> done.')
-        serviceMenu()
-    elif choice in ["5"]:
-        acc_server_status = ssh_execute.service('accwebappsd', 'start')
-        print('\t> done.')
-        serviceMenu()
-    elif choice in ["6"]:
-        acc_server_status = ssh_execute.service('accd', 'stop')
-        print('\t> done.')
-        serviceMenu()
-    elif choice in ["7"]:
-        acc_server_status = ssh_execute.service('accwebappsd', 'stop')
-        print('\t> done.')
-        serviceMenu()
-    elif choice in ["8"]:
         main_menu()
     else:
-        serviceMenu()
+        prepare_menu()
 
 
 # the program is initiated, so to speak, here
