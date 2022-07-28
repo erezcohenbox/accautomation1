@@ -5,3 +5,4 @@ killall sipp
 zip -r simulator.zip ../simulator/*
 mv simulator.zip ../simulator_$now.zip
 rm -rf *_.*
+rm -rf *_errors.*
