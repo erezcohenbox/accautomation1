@@ -112,7 +112,7 @@ def create_sim_files():
         method = joined_list[2]
 
     except(FileNotFoundError):
-        print(bcolors.FAIL + 'please set load type and capacity first' + bcolors.RESET)
+        print(bcolors.FAIL + 'you should \'set load type and capacity\' first' + bcolors.RESET)
         return()
 
     load_method = 'templates/'+ method + '/'
@@ -126,15 +126,23 @@ def create_sim_files():
     local_path = os.path.join ('scripts/', str(users)+'_users')
     remote_path = 'simulator/'
     os.makedirs(local_path, exist_ok = True)
+    
+    print(bcolors.INFO  + 'creating  : aeonix \'import_' + str(users) + '_users.csv\' file having the following fields/order...' + bcolors.RESET) 
+    print(bcolors.INFO2 + '\'User ID\', \'Internal aliases\', \'Description\', \'Phone name\', \'Phone type\', \'Phone Domain\'' + bcolors.RESET) 
     #fieldnames =  ['User ID', 'Internal aliases', 'Description', 'Phone name', 'Phone type', 'Phone Domain']
     with open(local_path+'/import_'+str(users)+'_users.csv', 'w') as usersfile:
         for counter in range(startuser, int(startuser + users)):
             usersfile.write(str(counter) +','+str(counter) +','+str(counter) +'_Desc,'+str(counter)+',SIP terminal'+',aeonix.com\n')
-    
+        usersfile.close()
+
+     
     for sectionnumber in range(1, sections + 1):
+        print()
+        print(bcolors.INFO + 'handling simulator files of sipp server_' + str(sectionnumber) + ':' + bcolors.RESET)
         local_path = os.path.join ('scripts/', str(users)+'_users/server_'+str(sectionnumber))
         os.makedirs(local_path, exist_ok = True)
         files = os.listdir(load_method)
+        print(bcolors.INFO2 + '- copy all templates files to local directory ../' + local_path + bcolors.RESET)
         [shutil.copy(load_method + fn, local_path) for fn in os.listdir(load_method)]
         
         SECTION = 'SERVER_' + str(sectionnumber) 
@@ -147,25 +155,32 @@ def create_sim_files():
         serverdict = {'section':SECTION, 'host': host, 'user': user, 'password':password, 'sipp_host': sipp_host, 'sipp_user': sipp_user, 'sipp_password':sipp_password}
         #print(serverdict['section'], serverdict['host'], serverdict['sipp_host'])
         
+        print(bcolors.INFO2 + '- parsing executable \'*.sh\' scripts' + bcolors.RESET)
         replace_string(local_path +'/register.sh','[servers]', sipp_host + ' ' + host)
         replace_string(local_path +'/register.sh','[users]', str(int(users/sections)))
         replace_string(local_path +'/answer.sh','[servers]', sipp_host + ' ' + host)
         replace_string(local_path +'/call.sh','[servers]', sipp_host + ' ' + host)
         replace_string(local_path +'/blf.sh','[servers]', sipp_host + ' ' + host)
 
+        print(bcolors.INFO2 + '- creating sequantial \'*.csv\' files' + bcolors.RESET)
         with open(local_path+'/register.csv', 'w') as registerfile:
             registerfile.write('SEQUENTIAL\n')
             for counter in range(startuser, int(startuser + users/sections)):
                 registerfile.write(str(counter) +';[authentication username='+str(counter) +' password=Aeonix123@]\n')
+            registerfile.close()
+        
         with open(local_path+'/call_answer.csv', 'w') as callanswerfile:
             callanswerfile.write('SEQUENTIAL\n')
             for counter in range(startuser, int(startuser + users/sections), 2):
                 callanswerfile.write(str(counter) + ';' + str(counter+1) +';\n')
+            callanswerfile.close()
         
+        print(bcolors.INFO2 + '- uploading simulator files to sipp server' + bcolors.RESET)
         sfpt_upload_sipp_files(sipp_host, sipp_user, sipp_password, local_path, remote_path)
         
         startuser = startuser + int(users/sections) 
-    #print("Finished")
+    print()
+    print(bcolors.INFO + 'all file can be found in: ' + os.getcwd() + '/scripts/' + str(users)+ '_users' + bcolors.RESET)
 
 
 def replace_string(filepath, replace, with_string):
@@ -173,16 +188,20 @@ def replace_string(filepath, replace, with_string):
         replace_string = f.read().replace(replace, with_string)
     with open(filepath, 'w', newline='\n') as f:
         f.write(replace_string)
-
+    f.close()
 
 def sfpt_upload_sipp_files(host, user, password, local_path, remote_path):
     client = paramiko.client.SSHClient()
     client.load_system_host_keys()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    transport = paramiko.Transport(host, 22)
-    transport.connect(username=user,password=password)
-    client.connect(hostname = host, username=user,password=password)
-    sftp = paramiko.SFTPClient.from_transport(transport)
+    try: #new
+        transport = paramiko.Transport(host, 22)
+        transport.connect(username=user,password=password)
+        client.connect(hostname = host, username=user,password=password)
+        sftp = paramiko.SFTPClient.from_transport(transport)
+    except:
+        print(bcolors.FAIL + 'communication error with sipp server - files upload failed, please check' + bcolors.RESET)
+        return()
     try:
         sftp.chdir(remote_path)
         ssh_command = 'cd ' + remote_path + '; chmod +x *.sh ; ./prepare_to_run.sh'
@@ -196,6 +215,7 @@ def sfpt_upload_sipp_files(host, user, password, local_path, remote_path):
         sftp.put(local_path + '/' +filename, filename)
     ssh_command = 'cd ' + remote_path + '; chmod +x *.sh'
     stdin,stdout,stderr = client.exec_command(ssh_command)
+    print(bcolors.INFO + 'files upload completed successfuly' + bcolors.RESET)
     sftp.close()
     transport.close()
     client.close()

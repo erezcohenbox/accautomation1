@@ -76,7 +76,7 @@ def environment_menu():
 def prepare_menu():
     prompt = """
     Aeonix Load Gen prepare for load running menu
-    1 -- choose load type and capacity
+    1 -- set load type and capacity
     2 -- generate load files and upload
     3 -- restart the environmnet
     4 -- go back\n
@@ -88,7 +88,6 @@ def prepare_menu():
         prepare.load_type_select()
         prepare_menu()
     elif choice in ["2"]:
-        #prepare.create_sim_files(2000, 30000, 'intra')
         prepare.create_sim_files()
         prepare_menu()
     elif choice in ["3"]:
