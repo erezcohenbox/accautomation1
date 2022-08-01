@@ -40,7 +40,7 @@ Prepare for load running:
 7.  Clean all Aeonix's logs before start
 8.  Aeonix Init Space if needed
 9.  Aeonix join cluster if needed
-10.  Aeonix Import users 
+10. Aeonix Import users 
 11. Aeonix Do restart if needed
 
 

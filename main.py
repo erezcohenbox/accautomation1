@@ -77,8 +77,8 @@ def prepare_menu():
     prompt = """
     Aeonix Load Gen prepare for load running menu
     1 -- set load type and capacity
-    2 -- generate load files and upload (will stop current sipp jobs)
-    3 -- stop sipp jobs and backup
+    2 -- generate load files and upload
+    3 -- terminate all sipp jobs and backup
     4 -- go back\n
     Enter your choice [1-4]: """
 
@@ -91,8 +91,7 @@ def prepare_menu():
         prepare.create_sim_files()
         prepare_menu()
     elif choice in ["3"]:
-        #acc_server_status = ssh_execute.service('accwebappsd', 'restart')
-        #print('\t> done.')
+        prepare.handling_sipp_jobs()
         prepare_menu()
     elif choice in ["4"]:
         main_menu()

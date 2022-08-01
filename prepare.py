@@ -87,13 +87,27 @@ def load_type_select():
     print(bcolors.INFO2 + '- prefered load run method         : intra test')
 
     # save all to 'temp' file
-    temp = [str(capacity), str(start_at), 'intra']
+    temp = [str(sections), str(capacity), str(start_at), 'intra']
     with open("temp", "w") as tempfile:
         tempfile.writelines(",".join(temp))
         tempfile.close()
 
         
-        
+def read_temp_file():
+    try:
+        with open("temp", "r") as tempfile:
+            joined_list = tempfile.read().split(',')
+        #print(joined_list)
+        tempfile.close()
+        #sections = int(joined_list[0])
+        #users = int(joined_list[1])
+        #startat = int(joined_list[2])
+        #method = joined_list[3]
+        return(joined_list)
+    
+    except(FileNotFoundError):
+        print(bcolors.FAIL + 'you should \'set load type and capacity\' first' + bcolors.RESET)
+        return()            
 
 
 
@@ -101,19 +115,11 @@ def load_type_select():
 def create_sim_files():
 #def create_sim_files(users, startat, method):
     import os, shutil
-
-    try:
-        with open("temp", "r") as tempfile:
-            joined_list = tempfile.read().split(',')
-        #print(joined_list)
-        tempfile.close()
-        users = int(joined_list[0])
-        startat = int(joined_list[1])
-        method = joined_list[2]
-
-    except(FileNotFoundError):
-        print(bcolors.FAIL + 'you should \'set load type and capacity\' first' + bcolors.RESET)
-        return()
+    read_temp_file_list =  read_temp_file()
+    sections = int(read_temp_file_list[0])
+    users = int(read_temp_file_list[1])
+    startat = int(read_temp_file_list[2])
+    method = read_temp_file_list[3]
 
     load_method = 'templates/'+ method + '/'
     config = ConfigObj('configfile.ini')
@@ -175,8 +181,17 @@ def create_sim_files():
                 callanswerfile.write(str(counter) + ';' + str(counter+1) +';\n')
             callanswerfile.close()
         
+        print(bcolors.INFO2 + '- creating \'load.info\' file' + bcolors.RESET)
+        with open(local_path + '/load.info', 'w') as loadinfofile:
+            loadinfofile.write(SECTION +' (out of ' + str(sections) + ')\n')
+            loadinfofile.write('total users = ' + str(users) + '\n')
+            loadinfofile.write('sipp host : ' + sipp_host + ' --> aeonix host : ' + host + '\n')
+            loadinfofile.write('users from : ' + str(startuser) + ' to : ' + str(int(startuser + users/sections - 1)) + ' (' + str(int(users/sections)) + ' users)\n')
+            loadinfofile.close()
+
         print(bcolors.INFO2 + '- uploading simulator files to sipp server' + bcolors.RESET)
-        sfpt_upload_sipp_files(sipp_host, sipp_user, sipp_password, local_path, remote_path)
+        #option = 'upload'
+        sipp_server_options(sipp_host, sipp_user, sipp_password, local_path, remote_path, 'upload')
         
         startuser = startuser + int(users/sections) 
     print()
@@ -190,7 +205,56 @@ def replace_string(filepath, replace, with_string):
         f.write(replace_string)
     f.close()
 
-def sfpt_upload_sipp_files(host, user, password, local_path, remote_path):
+
+def handling_sipp_jobs():
+#def create_sim_files(users, startat, method):
+    import os, shutil, time
+    read_temp_file_list =  read_temp_file()
+    sections = int(read_temp_file_list[0])
+    users = int(read_temp_file_list[1])
+    startat = int(read_temp_file_list[2])
+    method = read_temp_file_list[3]
+
+
+    config = ConfigObj('configfile.ini')
+    serverdict = {}
+    serverdict.clear
+    sections = len(config.sections)
+    
+    remote_path = 'simulator/'
+    
+     
+    for sectionnumber in range(1, sections + 1):
+        print()
+        print(bcolors.INFO + 'handling simulator jobs of sipp server_' + str(sectionnumber) + ':' + bcolors.RESET)
+        local_path = os.path.join ('scripts/', str(users)+'_users/server_'+str(sectionnumber))
+        SECTION = 'SERVER_' + str(sectionnumber) 
+        host = config[SECTION]['host']
+        user = config[SECTION]['user']
+        password = config[SECTION]['password']
+        sipp_host = config[SECTION]['sipp_host']
+        sipp_user = config[SECTION]['sipp_user']
+        sipp_password = config[SECTION]['sipp_password']
+        serverdict = {'section':SECTION, 'host': host, 'user': user, 'password':password, 'sipp_host': sipp_host, 'sipp_user': sipp_user, 'sipp_password':sipp_password}
+        #print(serverdict['section'], serverdict['host'], serverdict['sipp_host'])
+        
+        print(bcolors.INFO2 + '- terminating all sipp running jobs' + bcolors.RESET)
+        sipp_server_options(sipp_host, sipp_user, sipp_password, '', remote_path, 'terminate')
+
+        print(bcolors.INFO2 + '- packing into zip file all simulation files' + bcolors.RESET)
+        sipp_server_options(sipp_host, sipp_user, sipp_password, '', remote_path, 'pack')
+        
+        time.sleep(3) #sleep 3 seconds to let the zip background task to complete
+        print(bcolors.INFO2 + '- download all simulation files' + bcolors.RESET)
+        sipp_server_options(sipp_host, sipp_user, sipp_password, local_path, remote_path, 'download')
+
+        
+
+    print()
+    print(bcolors.INFO + 'simulator logs were downoaded to each one of the servers in : ' + os.getcwd() + '/scripts/' + str(users)+ '_users' + bcolors.RESET)
+
+
+def sipp_server_options(host, user, password, local_path, remote_path, option):
     client = paramiko.client.SSHClient()
     client.load_system_host_keys()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -200,22 +264,38 @@ def sfpt_upload_sipp_files(host, user, password, local_path, remote_path):
         client.connect(hostname = host, username=user,password=password)
         sftp = paramiko.SFTPClient.from_transport(transport)
     except:
-        print(bcolors.FAIL + 'communication error with sipp server - files upload failed, please check' + bcolors.RESET)
+        print(bcolors.FAIL + 'communication error with sipp server - please check' + bcolors.RESET)
         return()
-    try:
-        sftp.chdir(remote_path)
-        ssh_command = 'cd ' + remote_path + '; chmod +x *.sh ; ./prepare_to_run.sh'
-        stdin,stdout,stderr = client.exec_command(ssh_command)
-    except IOError:
-        sftp.mkdir(remote_path)
-        sftp.chdir(remote_path)
-    files = os.listdir(local_path)
     
-    for filename in files:
-        sftp.put(local_path + '/' +filename, filename)
-    ssh_command = 'cd ' + remote_path + '; chmod +x *.sh'
-    stdin,stdout,stderr = client.exec_command(ssh_command)
-    print(bcolors.INFO + 'files upload completed successfuly' + bcolors.RESET)
+    
+    if option in ['upload']:
+        try:
+            sftp.chdir(remote_path)
+            ssh_command = 'cd ' + remote_path + '; chmod +x *.sh'
+            stdin,stdout,stderr = client.exec_command(ssh_command)
+        except IOError:
+            sftp.mkdir(remote_path)
+            sftp.chdir(remote_path)
+        
+        files = os.listdir(local_path)    
+        for filename in files:
+            sftp.put(local_path + '/' + filename, filename)
+        ssh_command = 'cd ' + remote_path + '; chmod +x *.sh'
+        stdin,stdout,stderr = client.exec_command(ssh_command)
+        print(bcolors.INFO + 'files upload completed successfuly' + bcolors.RESET)
+    
+    elif option in ['terminate']:
+        ssh_command = 'killall sipp ; echo "> terminated at : $(date +%Y-%m-%d_%H:%M)" >> ' + remote_path + 'load.info'
+        stdin,stdout,stderr = client.exec_command(ssh_command)
+
+    elif option in ['pack']:
+        ssh_command = 'cd ' + remote_path + '; chmod +x *.sh ; zip -r ../simulator_logs.zip * &>/dev/null &'
+        stdin,stdout,stderr = client.exec_command(ssh_command)
+
+    elif option in ['download']:
+        sftp.get('simulator_logs.zip', local_path + '\simulator_logs.zip')
+
+
     sftp.close()
     transport.close()
     client.close()
