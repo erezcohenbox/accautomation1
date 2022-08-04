@@ -97,12 +97,7 @@ def read_temp_file():
     try:
         with open("temp", "r") as tempfile:
             joined_list = tempfile.read().split(',')
-        #print(joined_list)
         tempfile.close()
-        #sections = int(joined_list[0])
-        #users = int(joined_list[1])
-        #startat = int(joined_list[2])
-        #method = joined_list[3]
         return(joined_list)
     
     except(FileNotFoundError):
@@ -206,7 +201,7 @@ def replace_string(filepath, replace, with_string):
     f.close()
 
 
-def handling_sipp_jobs():
+def handling_sipp_jobs(option):
 #def create_sim_files(users, startat, method):
     import os, shutil, time
     read_temp_file_list =  read_temp_file()
@@ -238,20 +233,34 @@ def handling_sipp_jobs():
         serverdict = {'section':SECTION, 'host': host, 'user': user, 'password':password, 'sipp_host': sipp_host, 'sipp_user': sipp_user, 'sipp_password':sipp_password}
         #print(serverdict['section'], serverdict['host'], serverdict['sipp_host'])
         
-        print(bcolors.INFO2 + '- terminating all sipp running jobs' + bcolors.RESET)
-        sipp_server_options(sipp_host, sipp_user, sipp_password, '', remote_path, 'terminate')
+        if option in ['terminate']:
+            print(bcolors.INFO2 + '- terminating all sipp running jobs' + bcolors.RESET)
+            sipp_server_options(sipp_host, sipp_user, sipp_password, '', remote_path, 'terminate')
 
-        print(bcolors.INFO2 + '- packing into zip file all simulation files' + bcolors.RESET)
-        sipp_server_options(sipp_host, sipp_user, sipp_password, '', remote_path, 'pack')
+            print(bcolors.INFO2 + '- packing simulation logs to a zip file' + bcolors.RESET)
+            sipp_server_options(sipp_host, sipp_user, sipp_password, '', remote_path, 'pack')
+            
+            time.sleep(3) #sleep 3 seconds to let the zip background task to complete
+            print(bcolors.INFO2 + '- download the zip file' + bcolors.RESET)
+            sipp_server_options(sipp_host, sipp_user, sipp_password, local_path, remote_path, 'download')
         
-        time.sleep(3) #sleep 3 seconds to let the zip background task to complete
-        print(bcolors.INFO2 + '- download all simulation files' + bcolors.RESET)
-        sipp_server_options(sipp_host, sipp_user, sipp_password, local_path, remote_path, 'download')
+        elif option in ['clean']:
+            print(bcolors.INFO2 + '- clean all simulation log files' + bcolors.RESET)
+            sipp_server_options(sipp_host, sipp_user, sipp_password, '', remote_path, 'clean')
 
-        
+        if option in ['bulk']:
+            print(bcolors.INFO2 + '- terminating all sipp running jobs' + bcolors.RESET)
+            sipp_server_options(sipp_host, sipp_user, sipp_password, '', remote_path, 'terminate')
 
-    print()
-    print(bcolors.INFO + 'simulator logs were downoaded to each one of the servers in : ' + os.getcwd() + '/scripts/' + str(users)+ '_users' + bcolors.RESET)
+            print(bcolors.INFO2 + '- clean all simulation log files' + bcolors.RESET)
+            sipp_server_options(sipp_host, sipp_user, sipp_password, '', remote_path, 'clean')
+
+            print(bcolors.INFO2 + '- upload all simulation files' + bcolors.RESET)
+            sipp_server_options(sipp_host, sipp_user, sipp_password, local_path, remote_path, 'upload')
+ 
+
+    #print()
+    #print(bcolors.INFO + 'completed' + bcolors.RESET)
 
 
 def sipp_server_options(host, user, password, local_path, remote_path, option):
@@ -280,21 +289,25 @@ def sipp_server_options(host, user, password, local_path, remote_path, option):
         files = os.listdir(local_path)    
         for filename in files:
             sftp.put(local_path + '/' + filename, filename)
-        ssh_command = 'cd ' + remote_path + '; chmod +x *.sh'
+        ssh_command = 'cd ' + remote_path + '; chmod +x *.sh ; rm -rf *.zip'
         stdin,stdout,stderr = client.exec_command(ssh_command)
-        print(bcolors.INFO + 'files upload completed successfuly' + bcolors.RESET)
+        #print(bcolors.INFO + 'files upload completed successfuly' + bcolors.RESET)
     
     elif option in ['terminate']:
         ssh_command = 'killall sipp ; echo "> terminated at : $(date +%Y-%m-%d_%H:%M)" >> ' + remote_path + 'load.info'
         stdin,stdout,stderr = client.exec_command(ssh_command)
 
     elif option in ['pack']:
-        ssh_command = 'cd ' + remote_path + '; chmod +x *.sh ; zip -r ../simulator_logs.zip * &>/dev/null &'
+        ssh_command = 'cd ' + remote_path + '; zip -r ../simulator_logs.zip * &>/dev/null &'
         stdin,stdout,stderr = client.exec_command(ssh_command)
 
     elif option in ['download']:
-        sftp.get('simulator_logs.zip', local_path + '\simulator_logs.zip')
+        #sftp.get('simulator_logs.zip', local_path + '\simulator_logs.zip')
+        sftp.get('simulator_logs', local_path + '\simulator_logs')
 
+    elif option in ['clean']:
+        ssh_command = 'cd ' + remote_path + '; chmod +x *.sh ; ./clean_logs.sh &>/dev/null &'
+        stdin,stdout,stderr = client.exec_command(ssh_command)
 
     sftp.close()
     transport.close()

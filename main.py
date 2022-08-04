@@ -76,10 +76,12 @@ def environment_menu():
 def prepare_menu():
     prompt = """
     Aeonix Load Gen prepare for load running menu
-    1 -- set load type and capacity
-    2 -- generate load files and upload
-    3 -- terminate all sipp jobs and backup
-    4 -- go back\n
+    1 -- set simulation type and capacity
+    2 -- prepare and upload the simulation files 
+    3 -- terminate all sipp jobs and download the logs
+    4 -- clean all sipp logs
+    5 -- bulk prepare (terminate, clean and upload)
+    6 -- go back\n
     Enter your choice [1-4]: """
 
     choice = input(prompt)
@@ -91,9 +93,15 @@ def prepare_menu():
         prepare.create_sim_files()
         prepare_menu()
     elif choice in ["3"]:
-        prepare.handling_sipp_jobs()
+        prepare.handling_sipp_jobs('terminate')
         prepare_menu()
     elif choice in ["4"]:
+        prepare.handling_sipp_jobs('clean')
+        prepare_menu()
+    elif choice in ["5"]:
+        prepare.handling_sipp_jobs('bulk')
+        prepare_menu()
+    elif choice in ["6"]:
         main_menu()
     else:
         prepare_menu()
