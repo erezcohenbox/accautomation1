@@ -225,11 +225,11 @@ def create_sim_files(capacity, start_at, method, options):
             loadinfofile.write('users from : ' + str(startuser) + ' to : ' + str(int(startuser + capacity/sections - 1)) + ' (' + str(int(capacity/sections)) + ' users)\n')
             loadinfofile.close()
 
-        #print(bcolors.INFO2 + '- upload all simulation files' + bcolors.RESET)
-        #file_upload = sipp_server_options(sipp_host, sipp_user, sipp_password, local_path, remote_path, 'upload')
+        print(bcolors.INFO2 + '- upload all simulation files' + bcolors.RESET)
+        file_upload = sipp_server_options(sipp_host, sipp_user, sipp_password, local_path, remote_path, 'upload')
 
         
-    startuser = startuser + int(capacity/sections) 
+        startuser = startuser + int(capacity/sections) 
 
 
 def replace_string(filepath, replace, with_string):
@@ -326,10 +326,10 @@ def sipp_server_options(host, user, password, local_path, remote_path, option):
 results = check_if_ready()
 #print(results)
 
-capacity = 4000
+capacity = 6000
 start_at = 30000
 method = 'intra'
-options = 'create'
+options = 'clean'
 create_sim_files(capacity, start_at, method, options)
 
 # terminate
@@ -339,3 +339,4 @@ create_sim_files(capacity, start_at, method, options)
 # pack
 # download
 # create
+# upload
