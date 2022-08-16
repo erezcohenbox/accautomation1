@@ -227,7 +227,6 @@ def create_sim_files(capacity, start_at, method, options):
 
         print(bcolors.INFO2 + '- upload all simulation files' + bcolors.RESET)
         file_upload = sipp_server_options(sipp_host, sipp_user, sipp_password, local_path, remote_path, 'upload')
-
         
         startuser = startuser + int(capacity/sections) 
 
