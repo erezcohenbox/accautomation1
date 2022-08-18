@@ -183,7 +183,6 @@ def replace_string(filepath, replace, with_string):
         f.write(replace_string)
     f.close()
 
-# ----------------------------------------------------------------------------------------
 def upload(trace):
     config = ConfigObj('configfile.ini')
     serverdict = {}
@@ -254,7 +253,7 @@ def check_if_ready(trace):
     return('error' if err > 0 else 'passed')
 
 
-
+# ----------------------------------------------------------------------------------------
 
 def server_command(server, component, option):
     config = ConfigObj('configfile.ini')

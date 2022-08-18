@@ -92,7 +92,7 @@ def prepare_menu():
         prepare_menu()
     elif choice in ["2"]:
         #prepare.create_sim_files()
-        prepare.upload(False)
+        prepare.upload(True)
         prepare_menu()
     elif choice in ["3"]:
         prepare.handling_sipp_jobs('terminate')
