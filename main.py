@@ -1,7 +1,8 @@
 import os, sys
-import ssh_execute
+#import ssh_execute
 import config
 import prepare
+#import playground_3
 import ipaddress
 
 
@@ -65,7 +66,7 @@ def environment_menu():
         config.setconfigfile()
         environment_menu()
     elif choice in ["2"]:
-        config.checkservers()
+        ready = prepare.check_if_ready(True)
         environment_menu()
     elif choice in ["3"]:
         main_menu()
@@ -76,8 +77,8 @@ def environment_menu():
 def prepare_menu():
     prompt = """
     Aeonix Load Gen prepare for load running menu
-    1 -- set simulation type and capacity
-    2 -- prepare and upload the simulation files 
+    1 -- select simulation type and create files
+    2 -- upload all the simulation files 
     3 -- terminate all sipp jobs and download the logs
     4 -- clean all sipp logs
     5 -- bulk prepare (terminate, clean and upload)
@@ -87,10 +88,11 @@ def prepare_menu():
     choice = input(prompt)
 
     if choice in ["1"]:
-        prepare.load_type_select()
+        prepare.create_sim_files(0,0,'intra')
         prepare_menu()
     elif choice in ["2"]:
-        prepare.create_sim_files()
+        #prepare.create_sim_files()
+        prepare.upload(False)
         prepare_menu()
     elif choice in ["3"]:
         prepare.handling_sipp_jobs('terminate')

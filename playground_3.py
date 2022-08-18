@@ -41,7 +41,7 @@ def check_if_ready():
         #print(serverdict['section'], serverdict['host'], serverdict['sipp_host'])
 
         print()
-        print(bcolors.INFO + 'checking sipp simulator server_' + str(sectionnumber) + ' environment :' + bcolors.RESET)
+        print(bcolors.INFO + 'checking sipp simulator SERVER_' + str(sectionnumber) + ' environment:' + bcolors.RESET)
         
         print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- aeonix server', host, ' - communication check  : ') + bcolors.RESET, end='')
         check = sipp_server_options(host, user, password, '', '', '')
@@ -53,7 +53,7 @@ def check_if_ready():
         result, err = (('failed', err+1) if check == 'error' else (check, err+0))
         print(result)
 
-        print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- aeonix server', host, ' - operation check      : ') + bcolors.RESET, end='')
+        print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- aeonix server', host, ' - operational check    : ') + bcolors.RESET, end='')
         check = sipp_server_options(host, user, password, '', '', 'anxrun')
         result, err = (('failed', err+1) if check == 'error' else (check, err+0))
         print(result)
@@ -75,6 +75,7 @@ def check_if_ready():
         print(bcolors.INFO + 'environmnet is ready for simulation tests' + bcolors.RESET)
     
     return('error' if err > 0 else 'passed')
+
 
 def create_sim_files(capacity, start_at, method, options):
     config = ConfigObj('configfile.ini')
@@ -322,20 +323,22 @@ def sipp_server_options(host, user, password, local_path, remote_path, option):
     client.close()
 
 
-results = check_if_ready()
+#results = check_if_ready()
 #print(results)
 
-capacity = 6000
+capacity = 0
 start_at = 30000
 method = 'intra'
 options = 'clean'
 create_sim_files(capacity, start_at, method, options)
+# options:
+    # terminate
+    # comm
+    # jobs
+    # clean
+    # pack
+    # download
+    # create
+    # upload
 
-# terminate
-# comm
-# jobs
-# clean
-# pack
-# download
-# create
-# upload
+#check_if_ready()
