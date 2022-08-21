@@ -66,7 +66,11 @@ def environment_menu():
         config.setconfigfile()
         environment_menu()
     elif choice in ["2"]:
-        ready = prepare.check_if_ready(True)
+        ready = prepare.execute('check_if_ready', True)
+        if int(ready) > 0:
+            print('\n'+ bcolors.FAIL + 'environmnet is not ready - ' + str(ready) + ' problem(s) detected - please check' + bcolors.RESET)
+        else:
+            print('\n'+ bcolors.INFO + 'environmnet is ready for simulation tests' + bcolors.RESET)
         environment_menu()
     elif choice in ["3"]:
         main_menu()
@@ -92,7 +96,11 @@ def prepare_menu():
         prepare_menu()
     elif choice in ["2"]:
         #prepare.create_sim_files()
-        prepare.upload(True)
+        ready = prepare.execute('upload', True)
+        if int(ready) > 0:
+            print('\n'+ bcolors.FAIL + 'upload was not properly made - ' + str(ready) + ' problem(s) detected - please check' + bcolors.RESET)
+        else:
+            print('\n'+ bcolors.INFO + 'upload done properly - environmnt is ready for simulation tests' + bcolors.RESET)
         prepare_menu()
     elif choice in ["3"]:
         prepare.handling_sipp_jobs('terminate')

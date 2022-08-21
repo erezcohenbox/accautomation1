@@ -183,29 +183,8 @@ def replace_string(filepath, replace, with_string):
         f.write(replace_string)
     f.close()
 
-def upload(trace):
-    config = ConfigObj('configfile.ini')
-    serverdict = {}
-    serverdict.clear
-    sections = len(config.sections)  
-    err = 0
-    if trace: print(bcolors.INFO +'configuration file contains ' + str(sections) + ' server(s) sections' + bcolors.RESET)
-    
-    for server in range(1, sections + 1):
-        if trace: print(bcolors.INFO2 + '- upload all SERVER_' + str(server) + ' simulation files ' + bcolors.RESET, end='')
-        check = server_command(server, 'sipp', 'upload')
-        result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
-        if trace: print(result)
-    if err > 0:
-        if trace: print('\n'+ bcolors.FAIL + 'upload was not properly made - ' + str(err) + ' problem(s) detected - please check' + bcolors.RESET)
-    else:
-        if trace: print('\n'+ bcolors.INFO + 'upload done properly - environmnt is ready for simulation tests' + bcolors.RESET)
 
-    return('error' if err > 0 else 'passed')
-
-
-
-def check_if_ready(trace):
+def execute (command, trace):
     config = ConfigObj('configfile.ini')
     serverdict = {}
     serverdict.clear
@@ -213,44 +192,48 @@ def check_if_ready(trace):
     remote_path = 'simulator/'
     err = 0
     if trace: print(bcolors.INFO +'configuration file contains ' + str(sections) + ' server(s) sections' + bcolors.RESET)
-    
     for server in range(1, sections + 1):
-        if trace: print('\n' + bcolors.INFO + 'checking simulator SERVER_' + str(server) + ' environment:' + bcolors.RESET)
-        #print('\n' + bcolors.INFO + 'checking simulator SERVER_' + str(server) + ' environment:' + bcolors.RESET)
+        if command == "check_if_ready":
+            if trace: print('\n' + bcolors.INFO + 'checking simulator SERVER_' + str(server) + ' environment:' + bcolors.RESET)
+            #print('\n' + bcolors.INFO + 'checking simulator SERVER_' + str(server) + ' environment:' + bcolors.RESET)
+            #print('\n' + bcolors.INFO + 'checking simulator SERVER_' + str(server) + ' environment:' + bcolors.RESET)
 
-        host = server_command(server, 'aeonix', 'ipaddress_anx')
-        if trace: print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- aeonix server', host, ' - communication check  : ') + bcolors.RESET, end='')
-        check = server_command(server, 'aeonix', 'comm')
-        result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
-        if trace: print(result)
+            host = server_command(server, 'aeonix', 'ipaddress_anx')
+            if trace: print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- aeonix server', host, ' - communication check  : ') + bcolors.RESET, end='')
+            check = server_command(server, 'aeonix', 'comm')
+            result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
+            if trace: print(result)
 
-        if trace: print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- aeonix server', host, ' - version check        : ') + bcolors.RESET, end='')
-        check = server_command(server, 'aeonix', 'version')
-        result, err = (('failed', err+1) if check == 'error' else (check, err+0))
-        if trace: print(result)
+            if trace: print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- aeonix server', host, ' - version check        : ') + bcolors.RESET, end='')
+            check = server_command(server, 'aeonix', 'version')
+            result, err = (('failed', err+1) if check == 'error' else (check, err+0))
+            if trace: print(result)
 
-        if trace: print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- aeonix server', host, ' - operational check    : ') + bcolors.RESET, end='')
-        check = server_command(server, 'aeonix', 'status')
-        result, err = (('failed', err+1) if check == 'error' or check == 'stopped' else (check, err+0))
-        if trace: print(result)
+            if trace: print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- aeonix server', host, ' - operational check    : ') + bcolors.RESET, end='')
+            check = server_command(server, 'aeonix', 'status')
+            result, err = (('failed', err+1) if check == 'error' or check == 'stopped' else (check, err+0))
+            if trace: print(result)
+            
+            host = server_command(server, 'aeonix', 'ipaddress_sipp')
+            if trace: print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- sipp server', host, ' - communication check  : ') + bcolors.RESET, end='')
+            check = server_command(server, 'sipp', 'comm')
+            result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
+            if trace: print(result)
+
+            if trace: print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- sipp server', host, ' - running job(s) check : ') + bcolors.RESET, end='')
+            check = server_command(server, 'sipp', 'jobs')
+            result, err = (('failed', err+1) if check == 'running' else ('passed', err+0))
+            if trace: print(result)
         
-        host = server_command(server, 'aeonix', 'ipaddress_sipp')
-        if trace: print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- sipp server', host, ' - communication check  : ') + bcolors.RESET, end='')
-        check = server_command(server, 'sipp', 'comm')
-        result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
-        if trace: print(result)
+        elif command == 'upload':
+            if trace: print(bcolors.INFO2 + '- upload all SERVER_' + str(server) + ' simulation files ' + bcolors.RESET, end='')
+            check = server_command(server, 'sipp', 'upload')
+            result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
+            if trace: print(result)
+    
+    #return(err if err > 0 else 'passed')
+    return(err)
 
-        if trace: print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- sipp server', host, ' - running job(s) check : ') + bcolors.RESET, end='')
-        check = server_command(server, 'sipp', 'jobs')
-        result, err = (('failed', err+1) if check == 'running' else ('passed', err+0))
-        if trace: print(result)
-    
-    if err > 0:
-        if trace: print('\n'+ bcolors.FAIL + 'environmnet is not ready ' + str(err) + ' problem(s) detected - please check' + bcolors.RESET)
-    else:
-        if trace: print('\n'+ bcolors.INFO + 'environmnet is ready for simulation tests' + bcolors.RESET)
-    
-    return('error' if err > 0 else 'passed')
 
 
 # ----------------------------------------------------------------------------------------
