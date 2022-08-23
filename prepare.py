@@ -111,7 +111,7 @@ def create_sim_files(capacity, start_at, method):
     os.makedirs(main_local_path, exist_ok = True)
 
     print()
-    print(bcolors.INFO  + 'creating  : aeonix \'import_' + str(capacity) + '_users.csv\' file having the following fields/order...' + bcolors.RESET) 
+    print(bcolors.INFO  + 'creating: aeonix \'import_' + str(capacity) + '_users.csv\' file having the following fields/order...' + bcolors.RESET) 
     print(bcolors.INFO2 + '\'User ID\', \'Internal aliases\', \'Description\', \'Phone name\', \'Phone type\', \'Phone Domain\'' + bcolors.RESET) 
     #fieldnames =  ['User ID', 'Internal aliases', 'Description', 'Phone name', 'Phone type', 'Phone Domain']
     with open(main_local_path +'/import_'+str(capacity)+'_users.csv', 'w') as usersfile:
@@ -125,55 +125,75 @@ def create_sim_files(capacity, start_at, method):
         print()
         print(bcolors.INFO + 'handling simulator SERVER_' + str(sectionnumber) + ' files:' + bcolors.RESET)
 
-        SECTION = 'SERVER_' + str(sectionnumber) 
-        host = config[SECTION]['host']
-        user = config[SECTION]['user']
-        password = config[SECTION]['password']
-        sipp_host = config[SECTION]['sipp_host']
-        sipp_user = config[SECTION]['sipp_user']
-        sipp_password = config[SECTION]['sipp_password']
-        serverdict = {'section':SECTION, 'host': host, 'user': user, 'password':password, 'sipp_host': sipp_host, 'sipp_user': sipp_user, 'sipp_password':sipp_password}
-        #print(serverdict['section'], serverdict['host'], serverdict['sipp_host'])
+        serverdict = get_section_info(sectionnumber)
 
-
-        local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(sectionnumber))
-        os.makedirs(local_path, exist_ok = True)
+        sipp_local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(sectionnumber) + '/sipp')
+        aeonix_local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(sectionnumber) + '/aeonix')
+        os.makedirs(sipp_local_path, exist_ok = True)
         files = os.listdir(template_method)
-        print(bcolors.INFO2 + '- copy all templates files to local directory ../' + local_path + bcolors.RESET)
+        print(bcolors.INFO2 + '- copy all templates files to local directory ../' + sipp_local_path + bcolors.RESET)
         #[shutil.copy(template_method + fn, local_path) for fn in os.listdir(template_method)] #original line
-        shutil.copytree(template_method, local_path, dirs_exist_ok=True)
+        shutil.copytree(template_method + '/sipp', sipp_local_path, dirs_exist_ok=True)
+        shutil.copytree(template_method + '/aeonix', aeonix_local_path, dirs_exist_ok=True)
+
         print(bcolors.INFO2 + '- parsing executable \'*.sh\' scripts' + bcolors.RESET)
-        replace_string(local_path +'/register.sh','[servers]', sipp_host + ' ' + host)
-        replace_string(local_path +'/register.sh','[users]', str(int(capacity/sections)))
-        replace_string(local_path +'/answer.sh','[servers]', sipp_host + ' ' + host)
-        replace_string(local_path +'/call.sh','[servers]', sipp_host + ' ' + host)
-        replace_string(local_path +'/blf.sh','[servers]', sipp_host + ' ' + host)
+        replace_string(sipp_local_path +'/register.sh','[servers]', serverdict['sipp_host'] + ' ' + serverdict['host'])
+        replace_string(sipp_local_path +'/register.sh','[users]', str(int(capacity/sections)))
+        replace_string(sipp_local_path +'/answer.sh','[servers]', serverdict['sipp_host'] + ' ' + serverdict['host'])
+        replace_string(sipp_local_path +'/call.sh','[servers]', serverdict['sipp_host'] + ' ' + serverdict['host'])
+        replace_string(sipp_local_path +'/blf.sh','[servers]', serverdict['sipp_host'] + ' ' + serverdict['host'])
 
         print(bcolors.INFO2 + '- creating sequantial \'*.csv\' files' + bcolors.RESET)
-        with open(local_path+'/register.csv', 'w') as registerfile:
+        with open(sipp_local_path +'/register.csv', 'w') as registerfile:
             registerfile.write('SEQUENTIAL\n')
             for counter in range(startuser, int(startuser + capacity/sections)):
                 registerfile.write(str(counter) +';[authentication username='+str(counter) +' password=Aeonix123@]\n')
             registerfile.close()
         
-        with open(local_path+'/call_answer.csv', 'w') as callanswerfile:
+        with open(sipp_local_path +'/call_answer.csv', 'w') as callanswerfile:
             callanswerfile.write('SEQUENTIAL\n')
             for counter in range(startuser, int(startuser + capacity/sections), 2):
                 callanswerfile.write(str(counter) + ';' + str(counter+1) +';\n')
             callanswerfile.close()
         
         print(bcolors.INFO2 + '- creating \'load.info\' file' + bcolors.RESET)
-        with open(local_path + '/load.info', 'w') as loadinfofile:
-            loadinfofile.write(SECTION +' (out of ' + str(sections) + ')\n')
+        with open(sipp_local_path + '/load.info', 'w') as loadinfofile:
+            loadinfofile.write(serverdict['section'] +' (out of ' + str(sections) + ')\n')
             loadinfofile.write('total users = ' + str(capacity) + '\n')
-            loadinfofile.write('sipp host : ' + sipp_host + ' --> aeonix host : ' + host + '\n')
+            loadinfofile.write('sipp host : ' + serverdict['sipp_host'] + ' --> aeonix host : ' + serverdict['host'] + '\n')
             loadinfofile.write('users from : ' + str(startuser) + ' to : ' + str(int(startuser + capacity/sections - 1)) + ' (' + str(int(capacity/sections)) + ' users)\n')
             loadinfofile.close()
-
-        #print(bcolors.INFO2 + '- upload all simulation files' + bcolors.RESET)
-        #file_upload = sipp_server_options(sipp_host, sipp_user, sipp_password, local_path, remote_path, 'upload')
         
+        shutil.copyfile(sipp_local_path + '/load.info', aeonix_local_path + '/load.info')
+
+        print(bcolors.INFO2 + '- setting \'cluster_disconnect.sh\' file' + bcolors.RESET)
+        with open(aeonix_local_path + '/disconnect_server.sh', 'w', newline='\n') as disconnectfile:
+            disconnectfile.write('#!/bin/sh\n\n')
+            for server in range(1, sections + 1):
+                if server == sectionnumber:
+                    continue
+                serverdict = get_section_info(server)
+                disconnectfile.write ('sudo iptables -A OUTPUT -d ' + serverdict['host'] + ' -j DROP\n')
+                disconnectfile.write ('sudo iptables -A INPUT -s ' + serverdict['host'] + ' -j DROP\n\n')
+                loadinfofile.close()
+
+
         startuser = startuser + int(capacity/sections) 
+
+def get_section_info(sectionnumber):
+    config = ConfigObj('configfile.ini')
+    serverdict = {}
+    serverdict.clear
+    sections = len(config.sections)  
+    SECTION = 'SERVER_' + str(sectionnumber) 
+    host = config[SECTION]['host']
+    user = config[SECTION]['user']
+    password = config[SECTION]['password']
+    sipp_host = config[SECTION]['sipp_host']
+    sipp_user = config[SECTION]['sipp_user']
+    sipp_password = config[SECTION]['sipp_password']
+    serverdict = {'section':SECTION, 'host': host, 'user': user, 'password':password, 'sipp_host': sipp_host, 'sipp_user': sipp_user, 'sipp_password':sipp_password}
+    return(serverdict)
 
 
 def replace_string(filepath, replace, with_string):
@@ -195,9 +215,6 @@ def execute (command, trace):
     for server in range(1, sections + 1):
         if command == "check_if_ready":
             if trace: print('\n' + bcolors.INFO + 'checking simulator SERVER_' + str(server) + ' environment:' + bcolors.RESET)
-            #print('\n' + bcolors.INFO + 'checking simulator SERVER_' + str(server) + ' environment:' + bcolors.RESET)
-            #print('\n' + bcolors.INFO + 'checking simulator SERVER_' + str(server) + ' environment:' + bcolors.RESET)
-
             host = server_command(server, 'aeonix', 'ipaddress_anx')
             if trace: print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- aeonix server', host, ' - communication check  : ') + bcolors.RESET, end='')
             check = server_command(server, 'aeonix', 'comm')
@@ -228,13 +245,19 @@ def execute (command, trace):
         elif command == 'upload':
             if trace: print(bcolors.INFO2 + '- upload all SERVER_' + str(server) + ' simulation files ' + bcolors.RESET, end='')
             check = server_command(server, 'sipp', 'upload')
-            #check = server_command(server, 'aeonix', 'upload') ####
+            check = server_command(server, 'aeonix', 'upload')
             result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
             if trace: print(result)
 
         elif command == 'terminate':
             if trace: print(bcolors.INFO2 + '- terminate all SERVER_' + str(server) + ' active simulators ' + bcolors.RESET, end='')
             check = server_command(server, 'sipp', 'terminate')
+            result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
+            if trace: print(result)
+        
+        elif command == 'clean':
+            if trace: print(bcolors.INFO2 + '- clean all SERVER_' + str(server) + ' logs ' + bcolors.RESET, end='')
+            check = server_command(server, 'sipp', 'clean')
             result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
             if trace: print(result)
     
@@ -299,12 +322,12 @@ def server_command(server, component, option):
         check = server_options(host, user, password, '', '', 'version')
 
     elif option in ["terminate"] and component == 'sipp':
-        check = server_options(host, user, password, '', '', 'terminate')
+        check = server_options(host, user, password, '', remote_path, 'terminate')
 
     elif option in ["clean"] and component == 'sipp':
         check = server_options(host, user, password, '', remote_path, 'clean')
 
-    elif option in ["upload"] and component == 'sipp':
+    elif option in ["upload"]: # and component == 'sipp':
         try:
             with open("temp", "r") as tempfile:
                 tmp_list = tempfile.read().split(',')
@@ -313,7 +336,11 @@ def server_command(server, component, option):
             method = tmp_list[3]   #method
         except:
             return('error')
-        local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(server))
+        
+        if component == 'sipp':
+            local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(server) + '/sipp')
+        elif component == 'aeonix':
+            local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(server) + '/aeonix')
         check = server_options(host, user, password, local_path, remote_path, 'upload')
     return(check)
 
@@ -334,6 +361,7 @@ def server_options(host, user, password, local_path, remote_path, option):
     if option in ['upload']:
         try:
             sftp.chdir(remote_path)
+            #ssh_command = 'chmod +x *.sh'
             ssh_command = 'cd ' + remote_path + '; chmod +x *.sh'
             stdin,stdout,stderr = client.exec_command(ssh_command)
         except IOError:
@@ -344,6 +372,7 @@ def server_options(host, user, password, local_path, remote_path, option):
         for filename in files:
             sftp.put(local_path + '/' + filename, filename)
         ssh_command = 'cd ' + remote_path + '; chmod +x *.sh ; rm -rf *.zip'
+        stdin,stdout,stderr = client.exec_command(ssh_command)
         ssh_command = 'echo created at : ' + timestamp + '\r >> ' + remote_path + 'load.info'
         stdin,stdout,stderr = client.exec_command(ssh_command)
     
@@ -372,8 +401,16 @@ def server_options(host, user, password, local_path, remote_path, option):
             return('stopped')
 
     elif option in ['terminate']:
-        ssh_command = 'killall sipp ; echo terminated at : ' + timestamp + '\r >> ' + remote_path + 'load.info'
+        ssh_command = 'killall sipp'
         stdin,stdout,stderr = client.exec_command(ssh_command)
+        ssh_command = 'cd ' + remote_path
+        stdin,stdout,stderr = client.exec_command(ssh_command)
+        ssh_command = 'echo terminated : ' + timestamp + '\r >> ' + remote_path + 'load.info'
+        stdin,stdout,stderr = client.exec_command(ssh_command)
+
+
+        #ssh_command = 'cd ' + remote_path + ' ; killall sipp ; echo terminated at : ' + timestamp + '\r >> ' + remote_path + '/load.info'
+        #stdin,stdout,stderr = client.exec_command(ssh_command)
         return None
 
     elif option in ['pack']:
@@ -385,6 +422,8 @@ def server_options(host, user, password, local_path, remote_path, option):
 
     elif option in ['clean']:
         ssh_command = 'cd ' + remote_path + '; chmod +x *.sh ; ./clean_logs.sh &>/dev/null &'
+        stdin,stdout,stderr = client.exec_command(ssh_command)
+        ssh_command = 'echo clean logs : ' + timestamp + '\r >> ' + remote_path + 'load.info'
         stdin,stdout,stderr = client.exec_command(ssh_command)
         return None
 
