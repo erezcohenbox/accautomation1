@@ -103,7 +103,11 @@ def prepare_menu():
             print('\n'+ bcolors.INFO + 'upload done properly - environmnt is ready for simulation tests' + bcolors.RESET)
         prepare_menu()
     elif choice in ["3"]:
-        prepare.handling_sipp_jobs('terminate')
+        ready = prepare.execute('terminate', True)
+        if int(ready) > 0:
+            print('\n'+ bcolors.FAIL + 'terminate was not properly made - ' + str(ready) + ' problem(s) detected - please check' + bcolors.RESET)
+        else:
+            print('\n'+ bcolors.INFO + 'terminate done properly - environmnt is ready for simulation tests' + bcolors.RESET)
         prepare_menu()
     elif choice in ["4"]:
         prepare.handling_sipp_jobs('clean')

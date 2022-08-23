@@ -123,7 +123,7 @@ def create_sim_files(capacity, start_at, method):
 
     for sectionnumber in range(1, sections + 1):
         print()
-        print(bcolors.INFO + 'handling sipp simulator server_' + str(sectionnumber) + ' files:' + bcolors.RESET)
+        print(bcolors.INFO + 'handling simulator SERVER_' + str(sectionnumber) + ' files:' + bcolors.RESET)
 
         SECTION = 'SERVER_' + str(sectionnumber) 
         host = config[SECTION]['host']
@@ -140,8 +140,8 @@ def create_sim_files(capacity, start_at, method):
         os.makedirs(local_path, exist_ok = True)
         files = os.listdir(template_method)
         print(bcolors.INFO2 + '- copy all templates files to local directory ../' + local_path + bcolors.RESET)
-        [shutil.copy(template_method + fn, local_path) for fn in os.listdir(template_method)]
-    
+        #[shutil.copy(template_method + fn, local_path) for fn in os.listdir(template_method)] #original line
+        shutil.copytree(template_method, local_path, dirs_exist_ok=True)
         print(bcolors.INFO2 + '- parsing executable \'*.sh\' scripts' + bcolors.RESET)
         replace_string(local_path +'/register.sh','[servers]', sipp_host + ' ' + host)
         replace_string(local_path +'/register.sh','[users]', str(int(capacity/sections)))
@@ -228,6 +228,13 @@ def execute (command, trace):
         elif command == 'upload':
             if trace: print(bcolors.INFO2 + '- upload all SERVER_' + str(server) + ' simulation files ' + bcolors.RESET, end='')
             check = server_command(server, 'sipp', 'upload')
+            #check = server_command(server, 'aeonix', 'upload') ####
+            result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
+            if trace: print(result)
+
+        elif command == 'terminate':
+            if trace: print(bcolors.INFO2 + '- terminate all SERVER_' + str(server) + ' active simulators ' + bcolors.RESET, end='')
+            check = server_command(server, 'sipp', 'terminate')
             result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
             if trace: print(result)
     
@@ -308,7 +315,6 @@ def server_command(server, component, option):
             return('error')
         local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(server))
         check = server_options(host, user, password, local_path, remote_path, 'upload')
-    
     return(check)
 
 
