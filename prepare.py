@@ -7,18 +7,25 @@ import paramiko
 #import main
 
 class bcolors:
-    OK = '\033[92m    > '      #GREEN
-    OKV = '\033[92m'           #GREEN
-    INFO = '\033[96m    > '    #LIGHT BLUE
-    INFO2 = '\033[0m      '    #
-    WARNING = '\033[93m    > ' #YELLOW
-    WARNINGV = '\033[93m'      #YELLOW
-    WARNING2 = '\033[93m      '#YELLOW
-    FAIL = '\033[91m    > '    #RED
-    FAILV = '\033[91m'         #RED
-    FAIL2 = '\033[91m      '   #RED
-    RESET = '\033[0m'          #RESET
-    CLS = '\033[2J'            #CLS
+    PROMPT  =   '\033[90m    > ' #GRAY
+    PROMPTV =   '\033[90m'       #GRAY
+    FAIL =      '\033[91m    > ' #RED
+    FAILV =     '\033[91m'       #RED
+    FAIL2 =     '\033[91m      ' #RED
+    OK =        '\033[92m    > ' #GREEN
+    OKV =       '\033[92m'       #GREEN
+    WARNING =   '\033[93m    > ' #YELLOW
+    WARNINGV =  '\033[93m'       #YELLOW
+    WARNING2 =  '\033[93m      '  #YELLOW
+    WARNINGX =  '\033[95m    > ' #PURPLE/PINK
+    WARNINGXV = '\033[95m'       #PURPLE/PINK
+    INFO =      '\033[96m    > ' #LIGHT BLUE
+    INFOV =     '\033[96m'       #LIGHT BLUE
+    INFO2 =     '\033[0m      '  #LIGHT BLUE
+    MENU =      '\033[97m    > ' #WHITE
+    MENUV =     '\033[97m'       #WHITE
+    RESET =     '\033[0m'        #RESET
+    CLS =       '\033[2J'        #CLS
     #https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
 
 
@@ -129,10 +136,13 @@ def create_sim_files(capacity, start_at, method):
 
         sipp_local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(sectionnumber) + '/sipp')
         aeonix_local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(sectionnumber) + '/aeonix')
+        download_local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(sectionnumber) + '/download')
         os.makedirs(sipp_local_path, exist_ok = True)
+        os.makedirs(aeonix_local_path, exist_ok = True)
+        os.makedirs(download_local_path, exist_ok = True)
+
         files = os.listdir(template_method)
         print(bcolors.INFO2 + '- copy all templates files to local directory ../' + sipp_local_path + bcolors.RESET)
-        #[shutil.copy(template_method + fn, local_path) for fn in os.listdir(template_method)] #original line
         shutil.copytree(template_method + '/sipp', sipp_local_path, dirs_exist_ok=True)
         shutil.copytree(template_method + '/aeonix', aeonix_local_path, dirs_exist_ok=True)
 
@@ -159,9 +169,9 @@ def create_sim_files(capacity, start_at, method):
         print(bcolors.INFO2 + '- creating \'load.info\' file' + bcolors.RESET)
         with open(sipp_local_path + '/load.info', 'w') as loadinfofile:
             loadinfofile.write(serverdict['section'] +' (out of ' + str(sections) + ')\n')
-            loadinfofile.write('total users = ' + str(capacity) + '\n')
+            loadinfofile.write('TOTAL USERS = ' + str(capacity) + '\n')
             loadinfofile.write('sipp host : ' + serverdict['sipp_host'] + ' --> aeonix host : ' + serverdict['host'] + '\n')
-            loadinfofile.write('users from : ' + str(startuser) + ' to : ' + str(int(startuser + capacity/sections - 1)) + ' (' + str(int(capacity/sections)) + ' users)\n')
+            loadinfofile.write('users from : ' + str(startuser) + ' to : ' + str(int(startuser + capacity/sections - 1)) + ' (' + str(int(capacity/sections)) + ' users)\n\n')
             loadinfofile.close()
         
         shutil.copyfile(sipp_local_path + '/load.info', aeonix_local_path + '/load.info')
@@ -177,8 +187,8 @@ def create_sim_files(capacity, start_at, method):
                 disconnectfile.write ('sudo iptables -A INPUT -s ' + serverdict['host'] + ' -j DROP\n\n')
                 loadinfofile.close()
 
-
         startuser = startuser + int(capacity/sections) 
+
 
 def get_section_info(sectionnumber):
     config = ConfigObj('configfile.ini')
@@ -260,6 +270,12 @@ def execute (command, trace):
             check = server_command(server, 'sipp', 'clean')
             result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
             if trace: print(result)
+
+        elif command == 'download':
+            if trace: print(bcolors.INFO2 + '- download all SERVER_' + str(server) + ' logs ' + bcolors.RESET, end='')
+            check = server_command(server, 'sipp', 'download')
+            result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
+            if trace: print(result)
     
     #return(err if err > 0 else 'passed')
     return(err)
@@ -336,17 +352,32 @@ def server_command(server, component, option):
             method = tmp_list[3]   #method
         except:
             return('error')
-        
         if component == 'sipp':
-            local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(server) + '/sipp')
+            local_path =  local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(server) + '/sipp')
         elif component == 'aeonix':
-            local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(server) + '/aeonix')
+            local_path = local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(server) + '/aeonix')
         check = server_options(host, user, password, local_path, remote_path, 'upload')
+    
+    elif option in ["download"] and component == 'sipp':
+        try:
+            with open("temp", "r") as tempfile:
+                tmp_list = tempfile.read().split(',')
+                tempfile.close()
+            capacity = tmp_list[1] #total number of users
+            method = tmp_list[3]   #method
+        except:
+            return('error')
+        local_path =  local_path = os.path.join ('scripts/', str(capacity) + '_users'+ '_' + method + '/server_'+str(server))
+        check = server_options(host, user, password, local_path, remote_path, 'pack')
+        check = server_options(host, user, password, local_path, remote_path, 'download')
+
+    
     return(check)
 
 
 def server_options(host, user, password, local_path, remote_path, option):
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp_zip = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
     client = paramiko.client.SSHClient()
     client.load_system_host_keys()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -373,7 +404,7 @@ def server_options(host, user, password, local_path, remote_path, option):
             sftp.put(local_path + '/' + filename, filename)
         ssh_command = 'cd ' + remote_path + '; chmod +x *.sh ; rm -rf *.zip'
         stdin,stdout,stderr = client.exec_command(ssh_command)
-        ssh_command = 'echo created at : ' + timestamp + '\r >> ' + remote_path + 'load.info'
+        ssh_command = 'echo ' + timestamp + ' created and uploaded' + '\r >> ' + remote_path + 'load.info'
         stdin,stdout,stderr = client.exec_command(ssh_command)
     
     elif option in ['hostname']:
@@ -405,25 +436,30 @@ def server_options(host, user, password, local_path, remote_path, option):
         stdin,stdout,stderr = client.exec_command(ssh_command)
         ssh_command = 'cd ' + remote_path
         stdin,stdout,stderr = client.exec_command(ssh_command)
-        ssh_command = 'echo terminated : ' + timestamp + '\r >> ' + remote_path + 'load.info'
+        ssh_command = 'echo ' + timestamp + ' terminate all running sipp jobs' + '\r >> ' + remote_path + 'load.info'
         stdin,stdout,stderr = client.exec_command(ssh_command)
-
-
-        #ssh_command = 'cd ' + remote_path + ' ; killall sipp ; echo terminated at : ' + timestamp + '\r >> ' + remote_path + '/load.info'
-        #stdin,stdout,stderr = client.exec_command(ssh_command)
         return None
 
     elif option in ['pack']:
-        ssh_command = 'cd ' + remote_path + '; zip -r ../sim_`hostname`_' + timestamp + '_logs.zip * &>/dev/null &'
+        ssh_command = 'cd ' + remote_path + '; zip -r ../sim_`hostname`_' + timestamp_zip + '_logs.zip * &>/dev/null &'
+        stdin,stdout,stderr = client.exec_command(ssh_command)
+        ssh_command = 'echo ' + timestamp + ' pack log files to zip' + '\r >> ' + remote_path + 'load.info'
         stdin,stdout,stderr = client.exec_command(ssh_command)
 
     elif option in ['download']:
-        sftp.get('simulator_logs', local_path + '\simulator_logs')
+        ssh_command = 'cd ~'
+        stdin,stdout,stderr = client.exec_command(ssh_command)
+        file_list = sftp.listdir()
+        for item in file_list:
+            if 'zip' in item:
+                sftp.get(item, local_path + '/download/' + item)
+                ssh_command = 'echo ' + timestamp + ' download file: ' + item + '\r >> ' + remote_path + 'load.info'
+                stdin,stdout,stderr = client.exec_command(ssh_command)
 
     elif option in ['clean']:
         ssh_command = 'cd ' + remote_path + '; chmod +x *.sh ; ./clean_logs.sh &>/dev/null &'
         stdin,stdout,stderr = client.exec_command(ssh_command)
-        ssh_command = 'echo clean logs : ' + timestamp + '\r >> ' + remote_path + 'load.info'
+        ssh_command = 'echo ' + timestamp + ' clean up the log files ' + '\r >> ' + remote_path + 'load.info'
         stdin,stdout,stderr = client.exec_command(ssh_command)
         return None
 

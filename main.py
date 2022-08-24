@@ -7,15 +7,25 @@ import ipaddress
 
 
 class bcolors:
-    OK = '\033[92m    > '      #GREEN
-    OKV = '\033[92m'           #GREEN
-    INFO = '\033[96m    > '    #LIGHT BLUE
-    WARNING = '\033[93m    > ' #YELLOW
-    WARNINGV = '\033[93m'      #YELLOW
-    FAIL = '\033[91m    > '    #RED
-    FAILV = '\033[91m'         #RED
-    RESET = '\033[0m'          #RESET
-    CLS = '\033[2J'            #CLS
+    PROMPT  =   '\033[90m    > ' #GRAY
+    PROMPTV =   '\033[90m'       #GRAY
+    FAIL =      '\033[91m    > ' #RED
+    FAILV =     '\033[91m'       #RED
+    FAIL2 =     '\033[91m      ' #RED
+    OK =        '\033[92m    > ' #GREEN
+    OKV =       '\033[92m'       #GREEN
+    WARNING =   '\033[93m    > ' #YELLOW
+    WARNINGV =  '\033[93m'       #YELLOW
+    WARNING2 =  '\033[93m      '  #YELLOW
+    WARNINGX =  '\033[95m    > ' #PURPLE/PINK
+    WARNINGXV = '\033[95m'       #PURPLE/PINK
+    INFO =      '\033[96m    > ' #LIGHT BLUE
+    INFOV =     '\033[96m'       #LIGHT BLUE
+    INFO2 =     '\033[0m      '  #LIGHT BLUE
+    MENU =      '\033[97m    > ' #WHITE
+    MENUV =     '\033[97m'       #WHITE
+    RESET =     '\033[0m'        #RESET
+    CLS =       '\033[2J'        #CLS
     #https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
 
 
@@ -26,7 +36,7 @@ def main():
 
 def main_menu():
     print(bcolors.RESET)
-    prompt = """
+    prompt = bcolors.MENUV + """
     +-+-+-+-+-+-+ +-+-+-+-+ +-+-+-+
     |A|e|o|n|i|x| |L|o|a|d| |G|e|n|
     +-+-+-+-+-+-+ +-+-+-+-+ +-+-+-+    
@@ -34,10 +44,10 @@ def main_menu():
     1 -- environment configuration and status
     2 -- prepare for load running
     3 -- run load tests
-    4 -- quit\n
-    Enter your choice [1-4]: """
+    4 -- quit\n""" + bcolors.PROMPTV + """
+    Enter your choice [1-4]: """ + bcolors.RESET 
 
-    choice = input(prompt)
+    choice = input(prompt )
 
     if choice in ["1"]:
         environment_menu()
@@ -53,12 +63,12 @@ def main_menu():
 
 
 def environment_menu():
-    prompt = """
+    prompt = bcolors.MENUV + """
     Aeonix Load Gen environment menu
     1 -- configure the environment
     2 -- check environment status
-    3 -- go back\n
-    Enter your choice [1-3]: """
+    3 -- go back\n""" + bcolors.PROMPTV + """
+    Enter your choice [1-3]: """ + bcolors.RESET
     
     choice = input(prompt)
 
@@ -79,15 +89,16 @@ def environment_menu():
 
 
 def prepare_menu():
-    prompt = """
+    prompt = bcolors.MENUV + """ 
     Aeonix Load Gen prepare for load running menu
     1 -- select simulation type and create files
     2 -- upload all the simulation files 
-    3 -- terminate all sipp jobs and download the logs
-    4 -- clean all sipp logs
-    5 -- bulk prepare (terminate, clean and upload)
-    6 -- go back\n
-    Enter your choice [1-4]: """
+    3 -- terminate all sipp jobs
+    4 -- download all the logs (packed)
+    5 -- clean up all sipp logs
+    6 -- bulk prepare (terminate, clean and upload)
+    7 -- go back\n""" + bcolors.PROMPTV + """
+    Enter your choice [1-4]: """ + bcolors.RESET
 
     choice = input(prompt)
 
@@ -110,16 +121,23 @@ def prepare_menu():
             print('\n'+ bcolors.INFO + 'terminate done properly - environmnt is ready for simulation tests' + bcolors.RESET)
         prepare_menu()
     elif choice in ["4"]:
+        ready = prepare.execute('download', True)
+        if int(ready) > 0:
+            print('\n'+ bcolors.FAIL + 'download was not properly made - ' + str(ready) + ' problem(s) detected - please check' + bcolors.RESET)
+        else:
+            print('\n'+ bcolors.INFO + 'download done properly - environmnt is ready for simulation tests' + bcolors.RESET)
+        prepare_menu()
+    elif choice in ["5"]:
         ready = prepare.execute('clean', True)
         if int(ready) > 0:
             print('\n'+ bcolors.FAIL + 'clean was not properly made - ' + str(ready) + ' problem(s) detected - please check' + bcolors.RESET)
         else:
             print('\n'+ bcolors.INFO + 'clean done properly - environmnt is ready for simulation tests' + bcolors.RESET)
         prepare_menu()
-    elif choice in ["5"]:
+    elif choice in ["6"]:
         prepare.handling_sipp_jobs('bulk')
         prepare_menu()
-    elif choice in ["6"]:
+    elif choice in ["7"]:
         main_menu()
     else:
         prepare_menu()
