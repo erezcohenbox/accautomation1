@@ -1,9 +1,9 @@
 import os
-import ipaddress, datetime
+import ipaddress #, datetime
 from configobj import ConfigObj
-import subprocess
-import platform
-import paramiko
+#import subprocess
+#import platform
+#import paramiko
 
 class bcolors:
     PROMPT  =   '\033[90m    > ' #GRAY
@@ -15,7 +15,7 @@ class bcolors:
     OKV =       '\033[92m'       #GREEN
     WARNING =   '\033[93m    > ' #YELLOW
     WARNINGV =  '\033[93m'       #YELLOW
-    WARNING2 =  '\033[93m      '  #YELLOW
+    WARNING2 =  '\033[93m      ' #YELLOW
     WARNINGX =  '\033[95m    > ' #PURPLE/PINK
     WARNINGXV = '\033[95m'       #PURPLE/PINK
     INFO =      '\033[96m    > ' #LIGHT BLUE
@@ -57,7 +57,7 @@ def setconfigfile():
     5 -- initialize a configuration file (if not exist)
     6 -- clear the configuration file content
     7 -- go back
-    note that you can use the {', '.join(fileoptions)} option(s) only\n""" + bcolors.PROMPTV + """
+    you can use the {', '.join(fileoptions)} option(s) only\n""" + bcolors.PROMPTV + """
     Enter your choice [1-6]: """ + bcolors.RESET
     
     choice = input(prompt)

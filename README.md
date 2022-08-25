@@ -2,6 +2,7 @@
 Special imports:
 1. pip install paramiko
 2. pip install configobj
+2. pip install selenium
 
 SIPp sever (ubuntu) should include zip package installed
 

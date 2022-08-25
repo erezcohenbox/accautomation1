@@ -1,9 +1,6 @@
 import os, sys
-#import ssh_execute
 import config
 import prepare
-#import playground_3
-import ipaddress
 
 
 class bcolors:
@@ -16,7 +13,7 @@ class bcolors:
     OKV =       '\033[92m'       #GREEN
     WARNING =   '\033[93m    > ' #YELLOW
     WARNINGV =  '\033[93m'       #YELLOW
-    WARNING2 =  '\033[93m      '  #YELLOW
+    WARNING2 =  '\033[93m      ' #YELLOW
     WARNINGX =  '\033[95m    > ' #PURPLE/PINK
     WARNINGXV = '\033[95m'       #PURPLE/PINK
     INFO =      '\033[96m    > ' #LIGHT BLUE
@@ -94,10 +91,11 @@ def prepare_menu():
     1 -- select simulation type and create files
     2 -- upload all the simulation files 
     3 -- terminate all sipp jobs
-    4 -- download all the logs (packed)
+    4 -- download all the logs (zipped)
     5 -- clean up all sipp logs
-    6 -- bulk prepare (terminate, clean and upload)
-    7 -- go back\n""" + bcolors.PROMPTV + """
+    5 -- clean up all sipp zip logs
+    7 -- bulk prepare (terminate, clean and upload)
+    8 -- go back\n""" + bcolors.PROMPTV + """
     Enter your choice [1-4]: """ + bcolors.RESET
 
     choice = input(prompt)
@@ -135,9 +133,16 @@ def prepare_menu():
             print('\n'+ bcolors.INFO + 'clean done properly - environmnt is ready for simulation tests' + bcolors.RESET)
         prepare_menu()
     elif choice in ["6"]:
-        prepare.handling_sipp_jobs('bulk')
+        ready = prepare.execute('clean_zip', True)
+        if int(ready) > 0:
+            print('\n'+ bcolors.FAIL + 'clean was not properly made - ' + str(ready) + ' problem(s) detected - please check' + bcolors.RESET)
+        else:
+            print('\n'+ bcolors.INFO + 'clean done properly - environmnt is ready for simulation tests' + bcolors.RESET)
         prepare_menu()
     elif choice in ["7"]:
+        prepare.handling_sipp_jobs('bulk')
+        prepare_menu()
+    elif choice in ["8"]:
         main_menu()
     else:
         prepare_menu()

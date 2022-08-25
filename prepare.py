@@ -1,8 +1,8 @@
-import os, sys, shutil, datetime
-import ipaddress
+import os, shutil, datetime #, sys 
+#import ipaddress
 from configobj import ConfigObj
-import subprocess
-import platform
+#import subprocess
+#import platform
 import paramiko
 #import main
 
@@ -16,7 +16,7 @@ class bcolors:
     OKV =       '\033[92m'       #GREEN
     WARNING =   '\033[93m    > ' #YELLOW
     WARNINGV =  '\033[93m'       #YELLOW
-    WARNING2 =  '\033[93m      '  #YELLOW
+    WARNING2 =  '\033[93m      ' #YELLOW
     WARNINGX =  '\033[95m    > ' #PURPLE/PINK
     WARNINGXV = '\033[95m'       #PURPLE/PINK
     INFO =      '\033[96m    > ' #LIGHT BLUE
@@ -270,6 +270,12 @@ def execute (command, trace):
             check = server_command(server, 'sipp', 'clean')
             result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
             if trace: print(result)
+        
+        elif command == 'clean_zip':
+            if trace: print(bcolors.INFO2 + '- clean all SERVER_' + str(server) + ' zip logs ' + bcolors.RESET, end='')
+            check = server_command(server, 'sipp', 'clean')
+            result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
+            if trace: print(result)
 
         elif command == 'download':
             if trace: print(bcolors.INFO2 + '- download all SERVER_' + str(server) + ' logs ' + bcolors.RESET, end='')
@@ -343,6 +349,9 @@ def server_command(server, component, option):
     elif option in ["clean"] and component == 'sipp':
         check = server_options(host, user, password, '', remote_path, 'clean')
 
+    elif option in ["clean_zip"] and component == 'sipp':
+        check = server_options(host, user, password, '', remote_path, 'clean_zip')
+
     elif option in ["upload"]: # and component == 'sipp':
         try:
             with open("temp", "r") as tempfile:
@@ -371,7 +380,6 @@ def server_command(server, component, option):
         check = server_options(host, user, password, local_path, remote_path, 'pack')
         check = server_options(host, user, password, local_path, remote_path, 'download')
 
-    
     return(check)
 
 
@@ -460,6 +468,13 @@ def server_options(host, user, password, local_path, remote_path, option):
         ssh_command = 'cd ' + remote_path + '; chmod +x *.sh ; ./clean_logs.sh &>/dev/null &'
         stdin,stdout,stderr = client.exec_command(ssh_command)
         ssh_command = 'echo ' + timestamp + ' clean up the log files ' + '\r >> ' + remote_path + 'load.info'
+        stdin,stdout,stderr = client.exec_command(ssh_command)
+        return None
+
+    elif option in ['clean_zip']:
+        ssh_command = 'cd ~' + remote_path + '; rm -rf *.zip'
+        stdin,stdout,stderr = client.exec_command(ssh_command)
+        ssh_command = 'echo ' + timestamp + ' clean up the zip log files ' + '\r >> ' + remote_path + 'load.info'
         stdin,stdout,stderr = client.exec_command(ssh_command)
         return None
 
