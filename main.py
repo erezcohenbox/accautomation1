@@ -39,9 +39,10 @@ def main_menu():
     +-+-+-+-+-+-+ +-+-+-+-+ +-+-+-+    
     Aeonix Load Gen main menu
     1 -- environment configuration and status
-    2 -- prepare for load running
-    3 -- run load tests
-    4 -- quit\n""" + bcolors.PROMPTV + """
+    2 -- prepare sipp for load running
+    3 -- prepare aeonix for load running
+    4 -- run load tests
+    5 -- quit\n""" + bcolors.PROMPTV + """
     Enter your choice [1-4]: """ + bcolors.RESET 
 
     choice = input(prompt )
@@ -53,6 +54,8 @@ def main_menu():
     elif choice in ["3"]:
         main_menu()
     elif choice in ["4"]:
+        main_menu()
+    elif choice in ["5"]:
         print(bcolors.WARNINGV + "    > goodbye...\n" + bcolors.RESET)
         sys.exit()  # Leave the program
     else:
@@ -62,7 +65,7 @@ def main_menu():
 def environment_menu():
     prompt = bcolors.MENUV + """
     Aeonix Load Gen environment menu
-    1 -- configure the environment
+    1 -- configure the environment file
     2 -- check environment status
     3 -- go back\n""" + bcolors.PROMPTV + """
     Enter your choice [1-3]: """ + bcolors.RESET
@@ -75,7 +78,8 @@ def environment_menu():
     elif choice in ["2"]:
         ready = prepare.execute('check_if_ready', True)
         if int(ready) > 0:
-            print('\n'+ bcolors.FAIL + 'environmnet is not ready - ' + str(ready) + ' problem(s) detected - please check' + bcolors.RESET)
+            print('\n'+ bcolors.FAIL + 'environmnet is not ready - at least ' + str(ready) + ' problem(s) found - please check' + bcolors.RESET)
+            print(bcolors.FAIL + 'note: sipp runnning job(s) are counted as a problem although might not be such' + bcolors.RESET)
         else:
             print('\n'+ bcolors.INFO + 'environmnet is ready for simulation tests' + bcolors.RESET)
         environment_menu()
@@ -87,14 +91,14 @@ def environment_menu():
 
 def prepare_menu():
     prompt = bcolors.MENUV + """ 
-    Aeonix Load Gen prepare for load running menu
+    Aeonix Load Gen prepare sipp for load running menu
     1 -- select simulation type and create files
     2 -- upload all the simulation files 
     3 -- terminate all sipp jobs
     4 -- download all the logs (zipped)
     5 -- clean up all sipp logs
     5 -- clean up all sipp zip logs
-    7 -- bulk prepare (terminate, clean and upload)
+    7 -- headless prepare (terminate, clean and upload)
     8 -- go back\n""" + bcolors.PROMPTV + """
     Enter your choice [1-4]: """ + bcolors.RESET
 

@@ -249,7 +249,8 @@ def execute (command, trace):
 
             if trace: print(bcolors.INFO2 + '{:<16s}{:>15s}{:>20s}'.format('- sipp server', host, ' - running job(s) check : ') + bcolors.RESET, end='')
             check = server_command(server, 'sipp', 'jobs')
-            result, err = (('failed', err+1) if check == 'running' else ('passed', err+0))
+            #result, err = (('failed', err+1) if check == 'running' else ('passed', err+0))
+            result, err = ((check, err+1) if check == 'running' else ('passed', err+0))
             if trace: print(result)
         
         elif command == 'upload':
