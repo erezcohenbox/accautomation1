@@ -77,7 +77,7 @@ def environment_menu():
         config.setconfigfile()
         environment_menu()
     elif choice in ["2"]:
-        ready = prepare.execute('check_if_ready', False)
+        ready = prepare.execute('check_if_ready', True)
         if int(ready) > 0:
             print('\n'+ bcolors.FAIL + 'environmnet is not ready - at least ' + str(ready) + ' problem(s) found - please check' + bcolors.RESET)
             print(bcolors.FAIL + 'note: sipp runnning job(s) are counted as a problem although might not be such' + bcolors.RESET)
@@ -99,7 +99,7 @@ def prepare_menu():
     Aeonix Load Gen prepare environment for load running
     1 -- select simulation type and create files
     2 -- upload all the simulation files 
-    3 -- patch aeonix server(s) (captcha, etc..) 
+    3 -- apply aeonix patches (captcha, etc..) 
     4 -- terminate all sipp jobs
     5 -- download all the logs (zipped)
     6 -- clean up all sipp logs

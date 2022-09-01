@@ -8,6 +8,7 @@ from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import pandas as pd
+pd.set_option('display.colheader_justify', 'right')
 
 class bcolors:
     PROMPT  =   '\033[90m    > ' #GRAY
@@ -255,7 +256,6 @@ def execute (command, trace):
                         continue
                     else:
                         return
-                    #return
         else:
             return           # configfile.ini is probably empty
 
