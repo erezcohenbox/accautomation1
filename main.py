@@ -85,8 +85,11 @@ def environment_menu():
             print('\n'+ bcolors.INFO + 'environmnet is ready for simulation tests' + bcolors.RESET)
         environment_menu()
     elif choice in ["3"]:
-        #prepare.cluster_status()
-        prepare.execute('check_cluster_status', True)
+        reply = prepare.execute('check_cluster_status', True)
+        if reply == 'error':
+            print('\n'+ bcolors.FAIL + 'cluster is not ready - at least 1 problem(s) found - please check' + bcolors.RESET)       
+        else:
+            print('\n'+ bcolors.INFO + 'cluster is ready for simulation tests' + bcolors.RESET)
         environment_menu()
     elif choice in ["4"]:
         main_menu()

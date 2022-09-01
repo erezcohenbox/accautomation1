@@ -225,6 +225,7 @@ def execute (command, trace):
     sections = len(config.sections)  
     remote_path = 'simulator/'
     err = 0
+    reply=''
     if trace: print(bcolors.INFO +'configuration file contains ' + str(sections) + ' server(s) sections' + bcolors.RESET)
 
     if command == "check_cluster_status":
@@ -255,7 +256,8 @@ def execute (command, trace):
                     if server_i < int(sections):
                         continue
                     else:
-                        return
+                        reply = 'error'
+                        return(reply)
         else:
             return           # configfile.ini is probably empty
 
@@ -285,8 +287,10 @@ def execute (command, trace):
 
         srv_stat_ok = driver.find_elements(By.XPATH, "//img[@title='Connection status: OK']")
         if trace: print (str(len(srv_stat_ok)) + ' server(s) are in \'Connection OK\' state' )
+        if len(srv_stat_ok) != sections: reply = 'error'
         srv_stat_nc = driver.find_elements(By.XPATH, "//img[@title='Connection status: Not connected']")
         if trace: print (str(len(srv_stat_nc)) + ' server(s) are in \'Not Connected\' state' )
+        if len(srv_stat_nc) != 0: reply = 'error'
 
         idx = 0
         rwdata = driver.find_elements(By.XPATH, "//*[@id='thePollingForm:totalEP']/tbody/tr/td")
@@ -296,7 +300,7 @@ def execute (command, trace):
                 tot_eps = str(r.text)
                 if trace: print('Total registered endpoints: ' + tot_eps)
 
-        #if sections == 1: return # no more data for 1 server environmnt so return
+        if sections == 1: return(reply) # no more data for 1 server environmnt so return
 
         if trace: print()
         clusterIntegrityTitles =[]
@@ -327,7 +331,7 @@ def execute (command, trace):
         #if trace: print(clusterIntegrityPanel)
         driver.close()
         driver.quit()
-        return()
+        return(reply)
 
    
     #
