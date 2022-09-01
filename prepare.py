@@ -1,10 +1,13 @@
-import os, shutil, datetime #, sys 
-#import ipaddress
+import os, shutil, datetime, time
+from turtle import left
 from configobj import ConfigObj
-#import subprocess
-#import platform
 import paramiko
-#import main
+from selenium import webdriver
+from selenium.webdriver.edge import service
+from selenium.webdriver.edge.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import pandas as pd
 
 class bcolors:
     PROMPT  =   '\033[90m    > ' #GRAY
@@ -222,6 +225,112 @@ def execute (command, trace):
     remote_path = 'simulator/'
     err = 0
     if trace: print(bcolors.INFO +'configuration file contains ' + str(sections) + ' server(s) sections' + bcolors.RESET)
+
+    if command == "check_cluster_status":
+        edgeOption = webdriver.EdgeOptions()
+        edgeOption.use_chromium = True
+        edgeOption.add_experimental_option('excludeSwitches', ['enable-logging'])
+        edgeOption.add_argument("--headless")
+        #edgeOption.add_argument("--enable-logging")
+        #edgeOption.add_argument("--log-level=3")
+        edgeOption.add_argument('--ignore-ssl-errors=yes')
+        edgeOption.add_argument('--ignore-certificate-errors')
+        s=service.Service(r'bin\drivers\msedgedriver.exe')
+        server_i = 0
+        if sections >= 1:
+            for server_i in range (1, int(sections)+1):
+                server_dict = get_section_info(str(server_i))
+                host = server_dict['host']
+                username = server_dict['user'] 
+                password = server_dict['password']
+                driver = webdriver.ChromiumEdge(service=s, options=edgeOption)
+                driver.refresh()
+                driver.implicitly_wait(5)
+                try:
+                    driver.get('https://' + host + ':8443/aeonix')
+                    break
+                except: 
+                    if trace: print(bcolors.FAIL + 'can\'t access via https://' + host + ':8443/aeonix - please check!' + bcolors.RESET)
+                    if server_i < int(sections):
+                        continue
+                    else:
+                        return
+                    #return
+        else:
+            return           # configfile.ini is probably empty
+
+        driver.implicitly_wait(5)
+        driver.find_element(By.ID, "loginForm:loginUserName").send_keys(username)
+        driver.find_element(By.ID, "loginForm:password").send_keys(password)
+        driver.find_element(By.ID, "loginForm:loginBtn").send_keys(Keys.RETURN)
+        time.sleep(2)
+        driver.get('https://' + host + ':8443/aeonix/rs/system/cluster.jsf')
+
+        clusterobj_titles = ['HOST', 'ADDR', 'EPS', 'IN', 'OUT', 'REC', 'ACC', 'LIC', 'TIME']
+        clusterobj = {}
+
+        if trace: print()
+        idx = 0
+        rwdata = driver.find_elements(By.XPATH, "//*[@id='thePollingForm:clusterobj']/tbody/tr/td")
+        for r in rwdata:
+            idx += 1
+            if idx == 2: 
+                nested = r.text
+                clusterobj[nested] = {}
+            if idx >= 3 and idx < 11: clusterobj[nested][clusterobj_titles[idx-2]] = r.text
+            if idx == 10: idx = 0
+        if trace: print (str(int(len(rwdata)/10)) + ' server(s) environmnt (via https://' + host + ':8443/aeonix): ')
+        clusterobj_df = pd.DataFrame.from_dict(clusterobj).T
+        if trace: print(clusterobj_df)
+
+        srv_stat_ok = driver.find_elements(By.XPATH, "//img[@title='Connection status: OK']")
+        if trace: print (str(len(srv_stat_ok)) + ' server(s) are in \'Connection OK\' state' )
+        srv_stat_nc = driver.find_elements(By.XPATH, "//img[@title='Connection status: Not connected']")
+        if trace: print (str(len(srv_stat_nc)) + ' server(s) are in \'Not Connected\' state' )
+
+        idx = 0
+        rwdata = driver.find_elements(By.XPATH, "//*[@id='thePollingForm:totalEP']/tbody/tr/td")
+        for r in rwdata:
+            idx += 1
+            if idx == 3:
+                tot_eps = str(r.text)
+                if trace: print('Total registered endpoints: ' + tot_eps)
+
+        #if sections == 1: return # no more data for 1 server environmnt so return
+
+        if trace: print()
+        clusterIntegrityTitles =[]
+        clusterIntegrityTable = []
+        clusterIntegrityPanel ={}
+
+        idx = 0
+        rwdata = driver.find_elements(By.XPATH, "//*[@id='thePollingForm:clusterIntegrityTable']/tbody/tr/td")
+
+        for r in rwdata:
+            idx += 1
+            if idx == 1: 
+                clusterIntegrityTitles.append(r.text)
+            clusterIntegrityTable.append(r.text)
+            if idx == 5: idx = 0
+
+        i = 0
+        for idx in range(len(rwdata)):
+            if idx %5 == 0: 
+                nested = clusterIntegrityTable[idx]
+                clusterIntegrityPanel[nested] = {}
+                continue
+            clusterIntegrityPanel[nested][clusterIntegrityTitles[i]] = clusterIntegrityTable[idx]
+            i += 1
+            if i >= 4: i = 0
+        clusterIntegrityPanel_df = pd.DataFrame.from_dict(clusterIntegrityPanel).T
+        if trace: print(clusterIntegrityPanel_df)
+        #if trace: print(clusterIntegrityPanel)
+        driver.close()
+        driver.quit()
+        return()
+
+   
+    #
     for server in range(1, sections + 1):
         if command == "check_if_ready":
             if trace: print('\n' + bcolors.INFO + 'checking simulator SERVER_' + str(server) + ' environment:' + bcolors.RESET)
@@ -260,6 +369,13 @@ def execute (command, trace):
             result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
             if trace: print(result)
 
+        elif command == 'patch':
+            if trace: print(bcolors.INFO2 + '- patched all SERVER_' + str(server) + ' files ' + bcolors.RESET, end='')
+            #check = server_command(server, 'sipp', 'upload')
+            check = server_command(server, 'aeonix', 'patch')
+            result, err = (('failed', err+1) if check == 'error' else ('passed', err+0))
+            if trace: print(result)
+
         elif command == 'terminate':
             if trace: print(bcolors.INFO2 + '- terminate all SERVER_' + str(server) + ' active simulators ' + bcolors.RESET, end='')
             check = server_command(server, 'sipp', 'terminate')
@@ -286,8 +402,6 @@ def execute (command, trace):
     
     #return(err if err > 0 else 'passed')
     return(err)
-
-
 
 # ----------------------------------------------------------------------------------------
 
@@ -343,6 +457,9 @@ def server_command(server, component, option):
 
     elif option in ["version"] and component == 'aeonix':
         check = server_options(host, user, password, '', '', 'version')
+
+    elif option in ["patch"] and component == 'aeonix':
+        check = server_options(host, user, password, '', remote_path, 'patch')
 
     elif option in ["terminate"] and component == 'sipp':
         check = server_options(host, user, password, '', remote_path, 'terminate')
@@ -415,7 +532,16 @@ def server_options(host, user, password, local_path, remote_path, option):
         stdin,stdout,stderr = client.exec_command(ssh_command)
         ssh_command = 'echo ' + timestamp + ' created and uploaded' + '\r >> ' + remote_path + 'load.info'
         stdin,stdout,stderr = client.exec_command(ssh_command)
-    
+
+    elif option in ['patch']:
+        ssh_command = 'cd ' + remote_path + '; chmod +x *.sh ; ./patch.sh &>/dev/null &'
+        stdin,stdout,stderr = client.exec_command(ssh_command)
+        ssh_command = 'echo ' + timestamp + ' server was patched  ' + '\r >> ' + remote_path + 'load.info'
+        stdin,stdout,stderr = client.exec_command(ssh_command)
+        outlines = stdout.readlines()
+        response = ''.join(outlines)
+        return(response)
+
     elif option in ['hostname']:
         ssh_command = 'hostname'
         stdin,stdout,stderr = client.exec_command(ssh_command)
@@ -502,5 +628,5 @@ def server_options(host, user, password, local_path, remote_path, option):
     client.close()
 
 remote_path = 'simulator/'
-results = server_command('3','sipp','clean')
-print(results)
+#results = server_command('3','sipp','clean')
+#print(results)

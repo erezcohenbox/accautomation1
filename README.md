@@ -5,7 +5,8 @@ Special imports:
 2. pip install configobj
 3. pip install selenium
 4. pip install webdriver-manager
-5. pip install pywin32
+5. pip install pywin32 ???
+6. pip install pandas
 
 SIPp sever (ubuntu) should include zip package installed
 

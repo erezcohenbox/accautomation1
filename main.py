@@ -67,7 +67,8 @@ def environment_menu():
     Aeonix Load Gen environment menu
     1 -- configure the environment file
     2 -- check environment status
-    3 -- go back\n""" + bcolors.PROMPTV + """
+    3 -- check cluster status
+    4 -- go back\n""" + bcolors.PROMPTV + """
     Enter your choice [1-3]: """ + bcolors.RESET
     
     choice = input(prompt)
@@ -76,7 +77,7 @@ def environment_menu():
         config.setconfigfile()
         environment_menu()
     elif choice in ["2"]:
-        ready = prepare.execute('check_if_ready', True)
+        ready = prepare.execute('check_if_ready', False)
         if int(ready) > 0:
             print('\n'+ bcolors.FAIL + 'environmnet is not ready - at least ' + str(ready) + ' problem(s) found - please check' + bcolors.RESET)
             print(bcolors.FAIL + 'note: sipp runnning job(s) are counted as a problem although might not be such' + bcolors.RESET)
@@ -84,6 +85,10 @@ def environment_menu():
             print('\n'+ bcolors.INFO + 'environmnet is ready for simulation tests' + bcolors.RESET)
         environment_menu()
     elif choice in ["3"]:
+        #prepare.cluster_status()
+        prepare.execute('check_cluster_status', True)
+        environment_menu()
+    elif choice in ["4"]:
         main_menu()
     else:
         environment_menu()
@@ -91,15 +96,16 @@ def environment_menu():
 
 def prepare_menu():
     prompt = bcolors.MENUV + """ 
-    Aeonix Load Gen prepare sipp for load running menu
+    Aeonix Load Gen prepare environment for load running
     1 -- select simulation type and create files
     2 -- upload all the simulation files 
-    3 -- terminate all sipp jobs
-    4 -- download all the logs (zipped)
-    5 -- clean up all sipp logs
-    5 -- clean up all sipp zip logs
-    7 -- headless prepare (terminate, clean and upload)
-    8 -- go back\n""" + bcolors.PROMPTV + """
+    3 -- patch aeonix server(s) (captcha, etc..) 
+    4 -- terminate all sipp jobs
+    5 -- download all the logs (zipped)
+    6 -- clean up all sipp logs
+    7 -- clean up all sipp zip logs
+    8 -- headless prepare (terminate, clean and upload)
+    9 -- go back\n""" + bcolors.PROMPTV + """
     Enter your choice [1-4]: """ + bcolors.RESET
 
     choice = input(prompt)
@@ -116,37 +122,44 @@ def prepare_menu():
             print('\n'+ bcolors.INFO + 'upload done properly - environmnt is ready for simulation tests' + bcolors.RESET)
         prepare_menu()
     elif choice in ["3"]:
+        ready = prepare.execute('patch', True)
+        if int(ready) > 0:
+            print('\n'+ bcolors.FAIL + 'patch was not properly made - ' + str(ready) + ' problem(s) detected - please check' + bcolors.RESET)
+        else:
+            print('\n'+ bcolors.INFO + 'patch done properly - environmnt is ready for simulation tests' + bcolors.RESET)
+        prepare_menu()
+    elif choice in ["4"]:
         ready = prepare.execute('terminate', True)
         if int(ready) > 0:
             print('\n'+ bcolors.FAIL + 'terminate was not properly made - ' + str(ready) + ' problem(s) detected - please check' + bcolors.RESET)
         else:
             print('\n'+ bcolors.INFO + 'terminate done properly - environmnt is ready for simulation tests' + bcolors.RESET)
         prepare_menu()
-    elif choice in ["4"]:
+    elif choice in ["5"]:
         ready = prepare.execute('download', True)
         if int(ready) > 0:
             print('\n'+ bcolors.FAIL + 'download was not properly made - ' + str(ready) + ' problem(s) detected - please check' + bcolors.RESET)
         else:
             print('\n'+ bcolors.INFO + 'download done properly - environmnt is ready for simulation tests' + bcolors.RESET)
         prepare_menu()
-    elif choice in ["5"]:
+    elif choice in ["6"]:
         ready = prepare.execute('clean', True)
         if int(ready) > 0:
             print('\n'+ bcolors.FAIL + 'clean was not properly made - ' + str(ready) + ' problem(s) detected - please check' + bcolors.RESET)
         else:
             print('\n'+ bcolors.INFO + 'clean done properly - environmnt is ready for simulation tests' + bcolors.RESET)
         prepare_menu()
-    elif choice in ["6"]:
+    elif choice in ["7"]:
         ready = prepare.execute('clean_zip', True)
         if int(ready) > 0:
             print('\n'+ bcolors.FAIL + 'clean was not properly made - ' + str(ready) + ' problem(s) detected - please check' + bcolors.RESET)
         else:
             print('\n'+ bcolors.INFO + 'clean done properly - environmnt is ready for simulation tests' + bcolors.RESET)
         prepare_menu()
-    elif choice in ["7"]:
+    elif choice in ["8"]:
         prepare.handling_sipp_jobs('bulk')
         prepare_menu()
-    elif choice in ["8"]:
+    elif choice in ["9"]:
         main_menu()
     else:
         prepare_menu()
