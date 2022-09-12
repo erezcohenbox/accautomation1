@@ -262,7 +262,7 @@ def execute (command, trace):
             return           # configfile.ini is probably empty
 
         driver.implicitly_wait(5)
-        driver.find_element(By.ID, "loginForm:loginUserName").send_keys(username)
+        driver.find_element(By.ID, "loginForm:loginUserName").send_keys(username) # need try except for this
         driver.find_element(By.ID, "loginForm:password").send_keys(password)
         driver.find_element(By.ID, "loginForm:loginBtn").send_keys(Keys.RETURN)
         time.sleep(2)
@@ -309,23 +309,24 @@ def execute (command, trace):
 
         idx = 0
         rwdata = driver.find_elements(By.XPATH, "//*[@id='thePollingForm:clusterIntegrityTable']/tbody/tr/td")
-
+        tablesize = len(rwdata)
         for r in rwdata:
             idx += 1
             if idx == 1: 
                 clusterIntegrityTitles.append(r.text)
             clusterIntegrityTable.append(r.text)
-            if idx == 5: idx = 0
+            if idx == sections + 1: idx = 0     # sections+1
 
         i = 0
+        #print(len(rwdata))
         for idx in range(len(rwdata)):
-            if idx %5 == 0: 
+            if idx % (sections + 1) == 0:       # sections+1
                 nested = clusterIntegrityTable[idx]
                 clusterIntegrityPanel[nested] = {}
                 continue
             clusterIntegrityPanel[nested][clusterIntegrityTitles[i]] = clusterIntegrityTable[idx]
             i += 1
-            if i >= 4: i = 0
+            if i >= sections: i = 0             # sections
         clusterIntegrityPanel_df = pd.DataFrame.from_dict(clusterIntegrityPanel).T
         if trace: print(clusterIntegrityPanel_df)
         #if trace: print(clusterIntegrityPanel)

@@ -53,7 +53,7 @@ def setconfigfile():
     1 -- add a new server
     2 -- edit a server
     3 -- delete a server
-    4 -- configuraion overview
+    4 -- configuraion file overview
     5 -- initialize a configuration file (if not exist)
     6 -- clear the configuration file content
     7 -- go back
