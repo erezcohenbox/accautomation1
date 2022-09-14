@@ -250,6 +250,12 @@ def execute (command, trace):
                 driver.implicitly_wait(5)
                 try:
                     driver.get('https://' + host + ':8443/aeonix')
+                    driver.implicitly_wait(5)
+                    driver.find_element(By.ID, "loginForm:loginUserName").send_keys(username) # need try except for this
+                    driver.find_element(By.ID, "loginForm:password").send_keys(password)
+                    driver.find_element(By.ID, "loginForm:loginBtn").send_keys(Keys.RETURN)
+                    time.sleep(2)
+                    driver.get('https://' + host + ':8443/aeonix/rs/system/cluster.jsf')
                     break
                 except: 
                     if trace: print(bcolors.FAIL + 'can\'t access via https://' + host + ':8443/aeonix - please check!' + bcolors.RESET)
@@ -261,12 +267,12 @@ def execute (command, trace):
         else:
             return           # configfile.ini is probably empty
 
-        driver.implicitly_wait(5)
-        driver.find_element(By.ID, "loginForm:loginUserName").send_keys(username) # need try except for this
-        driver.find_element(By.ID, "loginForm:password").send_keys(password)
-        driver.find_element(By.ID, "loginForm:loginBtn").send_keys(Keys.RETURN)
-        time.sleep(2)
-        driver.get('https://' + host + ':8443/aeonix/rs/system/cluster.jsf')
+        #driver.implicitly_wait(5)
+        #driver.find_element(By.ID, "loginForm:loginUserName").send_keys(username) # need try except for this
+        #driver.find_element(By.ID, "loginForm:password").send_keys(password)
+        #driver.find_element(By.ID, "loginForm:loginBtn").send_keys(Keys.RETURN)
+        #time.sleep(2)
+        #driver.get('https://' + host + ':8443/aeonix/rs/system/cluster.jsf')
 
         clusterobj_titles = ['HOST', 'ADDR', 'EPS', 'IN', 'OUT', 'REC', 'ACC', 'LIC', 'TIME']
         clusterobj = {}
@@ -286,10 +292,10 @@ def execute (command, trace):
         if trace: print(clusterobj_df)
 
         srv_stat_ok = driver.find_elements(By.XPATH, "//img[@title='Connection status: OK']")
-        if trace: print (str(len(srv_stat_ok)) + ' server(s) are in \'Connection OK\' state' )
+        if trace: print (str(len(srv_stat_ok)) + ' server(s) in \'Connection OK\' state' )
         if len(srv_stat_ok) != sections: reply = 'error'
         srv_stat_nc = driver.find_elements(By.XPATH, "//img[@title='Connection status: Not connected']")
-        if trace: print (str(len(srv_stat_nc)) + ' server(s) are in \'Not Connected\' state' )
+        if trace: print (str(len(srv_stat_nc)) + ' server(s) in \'Not Connected\' state' )
         if len(srv_stat_nc) != 0: reply = 'error'
 
         idx = 0
@@ -635,3 +641,4 @@ def server_options(host, user, password, local_path, remote_path, option):
 remote_path = 'simulator/'
 #results = server_command('3','sipp','clean')
 #print(results)
+#create_sim_files(8000, 3000, 'intra')
