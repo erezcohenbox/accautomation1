@@ -530,7 +530,7 @@ def server_options(host, user, password, local_path, remote_path, option):
         try:
             sftp.chdir(remote_path)
             #ssh_command = 'chmod +x *.sh'
-            ssh_command = 'cd ' + remote_path + '; chmod +x *.sh'
+            ssh_command = 'cd ' + remote_path + '; chmod +x *.sh anxd'
             stdin,stdout,stderr = client.exec_command(ssh_command)
         except IOError:
             sftp.mkdir(remote_path)
