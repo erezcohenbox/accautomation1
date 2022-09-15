@@ -3,35 +3,39 @@ import ipaddress #, datetime
 from configobj import ConfigObj
 
 class bcolors:
-    PROMPT  =   '\033[90m    > ' #GRAY
-    PROMPTV =   '\033[90m'       #GRAY
-    FAIL =      '\033[91m    > ' #RED
-    FAILV =     '\033[91m'       #RED
-    FAIL2 =     '\033[91m      ' #RED
-    OK =        '\033[92m    > ' #GREEN
-    OKV =       '\033[92m'       #GREEN
-    WARNING =   '\033[93m    > ' #YELLOW
-    WARNINGV =  '\033[93m'       #YELLOW
-    WARNING2 =  '\033[93m      ' #YELLOW
-    WARNINGX =  '\033[95m    > ' #PURPLE/PINK
-    WARNINGXV = '\033[95m'       #PURPLE/PINK
-    INFO =      '\033[96m    > ' #LIGHT BLUE
-    INFOV =     '\033[96m'       #LIGHT BLUE
-    INFO2 =     '\033[0m      '  #LIGHT BLUE
-    MENU =      '\033[97m    > ' #WHITE
-    MENUV =     '\033[97m'       #WHITE
-    RESET =     '\033[0m'        #RESET
-    CLS =       '\033[2J'        #CLS
+    #PROMPT  =   '\033[90m    > ' #GRAY
+    NOTE     =  '\033[90m'       #GRAY
+    FAIL     =  '\033[91m'       #RED
+    OK       =  '\033[92m'       #GREEN
+    MENU     =  '\033[93m'       #YELLOW
+    VARIABLE =  '\034[94m'       #BLUE
+    WARNING  =  '\033[95m'       #PINK
+    INFO     =  '\033[96m'       #LIGHT BLUE
+    PROMPT   =  '\033[97m'       #WHITE
+    RESET    =  '\033[0m'        #RESET
+    CLS      =  '\033[2J'        #CLS
+
+
+
 
 configFileName = 'configfileNew.ini'
 configFileObject = ConfigObj(configFileName,raise_errors=False)
 
+
+
+
 class configfile:
 
+    def Initialize():
+        with open(configFileName, 'w') as configfile:
+            pass
+        return
 
     def sectionsCount():
-        #configFile = ConfigObj('configfile.ini')
         return(len(configFileObject.sections))
+
+    def sectionsNames():
+        return(configFileObject.sections)
 
     def checkOptions():
         configFileOptions = ''
@@ -40,7 +44,8 @@ class configfile:
                 filesize = os.path.getsize(configFileName)
                 #filesize = os.path.getsize(configfile)
                 if filesize > 0:
-                    configFileOptions = ['add','edit','delete','clear']
+                    #configFileOptions = ['add','edit','delete','clear']
+                    configFileOptions = ['add','delete','clear']
                 else:
                     configFileOptions = ['add']
         except FileNotFoundError:
@@ -61,67 +66,93 @@ class configfile:
         configFileObject[aeonix_host]['sipp_password'] = sipp_password
         configFileObject.write()
         print(bcolors.OK + 'done.' + bcolors.RESET)
+        return
 
-    def sectionRemove(aeonix_host):
-        configFileObject.sections.remove(aeonix_host)
-        configFileObject.write()
-        print(bcolors.OK + 'done.' + bcolors.RESET)
-        return()
+    def sectionRemove():
+        print(bcolors.NOTE + 'configuration file contains ' + str(configfile.sectionsCount()) + ' server(s) environment.' + bcolors.RESET)
+        print(bcolors.INFO + ' | '.join(configFileObject.sections) + bcolors.RESET)
+        aeonix_host = input(bcolors.PROMPT + 'type the server to remove: ' + bcolors.RESET)
 
-    def Initialize():
-        with open(configFileName, 'w') as configfile:
-            pass
-        return()
-
-    def sectionInput():
-        print(bcolors.WARNING + 'adding new server section' + bcolors.RESET)
-        
-        aeonix_host = input(bcolors.INFO + 'aeonix host = '+ bcolors.RESET )
         try:
-            checkIp = ipaddress.ip_address(aeonix_host)
-            #print(f'{ip} is correct. Version: IPv{ip.version}')
+            configFileObject.sections.remove(aeonix_host)
+            configFileObject.write()
+            print(bcolors.OK + 'done.' + bcolors.RESET)
         except ValueError:
-            print(bcolors.FAIL + 'invalid ip address...' + bcolors.RESET)
-            return()
-        
+            print(bcolors.FAIL + 'value not in list.' + bcolors.RESET)
+        return
+
+    def sectionAdd():
+        print(bcolors.NOTE + 'adding new server section' + bcolors.RESET)
+        aeonix_host = input(bcolors.INFO + 'aeonix host = '+ bcolors.RESET)
+        if configfile.validateInput(aeonix_host, 'ipAddress') == 'invalid':
+            return
+
         aeonix_user = input(bcolors.INFO + 'aeonix user = '+ bcolors.RESET)
-        if " " in aeonix_user or aeonix_user =="":
-            print(bcolors.FAIL + 'invalid user name...' + bcolors.RESET)
-            return()
+        if configfile.validateInput(aeonix_user, 'regularString') == 'invalid':
+            return
 
         aeonix_password = input(bcolors.INFO + 'aeonix password = '+ bcolors.RESET)
-        if " " in aeonix_password or aeonix_password =="":
-            print(bcolors.FAIL + 'invalid password...' + bcolors.RESET)
-            return()
+        if configfile.validateInput(aeonix_password, 'regularString') == 'invalid':
+            return
 
-        aeonix_user = input(bcolors.INFO + 'aeonix user = '+ bcolors.RESET)
-        if " " in aeonix_user or aeonix_user =="":
-            print(bcolors.FAIL + 'invalid user name...' + bcolors.RESET)
-            return()
+        aeonix_web_user = input(bcolors.INFO + 'aeonix web user = '+ bcolors.RESET)
+        if configfile.validateInput(aeonix_web_user, 'regularString') == 'invalid':
+            return
 
-        aeonix_password = input(bcolors.INFO + 'aeonix user = '+ bcolors.RESET)
-        if " " in aeonix_password or aeonix_password =="":
-            print(bcolors.FAIL + 'invalid user name...' + bcolors.RESET)
-            return()
+        aeonix_web_password = input(bcolors.INFO + 'aeonix web password = '+ bcolors.RESET)
+        if configfile.validateInput(aeonix_web_password, 'regularString') == 'invalid':
+            return
 
-        #sections = configfile.sectionsCount(configFileObject)
-        #serverNumber = sections + 1
-        aeonix_host = '172.28.9.222'
-        aeonix_user = 'aeonixadmin'
-        aeonix_password = 'anx'
-        aeonix_web_user = 'aeonixadmin'
-        aeonix_web_password = 'Ujxxxx'
-        sipp_host = '172.28.9.71'
-        sipp_user = 'erezcohem'
-        sipp_password = 'tadirantele'
+        sipp_host = input(bcolors.INFO + 'sipp host = '+ bcolors.RESET)
+        if configfile.validateInput(sipp_host, 'ipAddress') == 'invalid':
+            return
+
+        sipp_user = input(bcolors.INFO + 'sipp user = '+ bcolors.RESET)
+        if configfile.validateInput(sipp_user, 'regularString') == 'invalid':
+            return
+
+        sipp_password = input(bcolors.INFO + 'sipp password = '+ bcolors.RESET)
+        if configfile.validateInput(sipp_password, 'regularString') == 'invalid':
+            return                   
+
         configfile.sectionWrite(aeonix_host, aeonix_user, aeonix_password, aeonix_web_user,
-                     aeonix_web_password, sipp_host, sipp_user, sipp_password)
+                                aeonix_web_password, sipp_host, sipp_user, sipp_password)
 
-#a = configfile.sectionsCount()
-#a = configfile.checkOptions()
+
+    def validateInput(valueInput, valueType):
+        if valueType in ["ipAddress"]:
+            try:
+                ipaddress.ip_address(valueInput)
+                #print(f'{ip} is correct. Version: IPv{ip.version}')
+            except ValueError:
+                print(bcolors.FAIL + 'invalid value.' + bcolors.RESET)
+                return ('invalid')
+        elif valueType in ["regularString"]:
+            if " " in valueInput or valueInput == "":
+                print(bcolors.FAIL + 'invalid value.' + bcolors.RESET)
+                return ('invalid')
+        else:
+            return
+
+
+#a = configfile.Initialize() v
+#a = configfile.sectionsCount() v
+#a = configfile.sectionsNames() v
+#a = configfile.checkOptions() v
+#a = configfile.sectionWrite(aeonix_host, aeonix_user, aeonix_password, aeonix_web_user, aeonix_web_password, sipp_host, sipp_user, sipp_password) v
+#a = configfile.sectionRemove() 
 #a = configfile.sectionAdd()
-#a = configfile.sectionRemove('172.28.9.221')
-a = configFileObject
+#print(a)
 
+prompt = bcolors.MENU + """
 
-print(a)
+Aeonix Load Gen configuration file menu
+1 -- add a new server
+2 -- delete a server
+3 -- review the configuration file
+4 -- initialize/clear the configuration file
+5 -- go back
+""" + bcolors.NOTE + f"""note:  you can use the {', '.join(configfile.checkOptions())} option(s) only\n""" + bcolors.PROMPT + """
+Enter your choice [1-5]: """ + bcolors.RESET
+
+choice = input(prompt)
