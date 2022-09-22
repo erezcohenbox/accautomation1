@@ -1,4 +1,5 @@
-import os
+from lib2to3.pgen2.parse import ParseError
+import os, re
 import ipaddress #, datetime
 from configobj import ConfigObj
 
@@ -15,18 +16,18 @@ class bcolors:
     RESET    =  '\033[0m'        #RESET
     CLS      =  '\033[2J'        #CLS
 
-
-
-
 configFileName = 'configfileNew.ini'
-configFileObject = ConfigObj(configFileName,raise_errors=False)
 
-
-
+try:
+    configFileObject = ConfigObj(configFileName,raise_errors=True)
+except:
+    file = open(configFileName,"w")
+    file.close()
+    configFileObject = ConfigObj(configFileName,raise_errors=True)
 
 class configfile:
 
-    def Initialize():
+    def initialize():
         with open(configFileName, 'w') as configfile:
             pass
         return
@@ -36,6 +37,9 @@ class configfile:
 
     def sectionsNames():
         return(configFileObject.sections)
+
+    def sectionsNamesDisplay():
+        return(' | '.join(configFileObject.sections))
 
     def checkOptions():
         configFileOptions = ''
@@ -53,95 +57,76 @@ class configfile:
         
         return(configFileOptions)
 
-    def sectionWrite(aeonix_host, aeonix_user, aeonix_password, aeonix_web_user,
-                     aeonix_web_password, sipp_host, sipp_user, sipp_password):
-        configFileObject[aeonix_host] = {}
-        configFileObject[aeonix_host]['aeonix_host'] = aeonix_host
-        configFileObject[aeonix_host]['aeonix_user'] = aeonix_user
-        configFileObject[aeonix_host]['aeonix_password'] = aeonix_password
-        configFileObject[aeonix_host]['aeonix_web_user'] = aeonix_web_user
-        configFileObject[aeonix_host]['aeonix_web_password'] = aeonix_web_password
-        configFileObject[aeonix_host]['sipp_host'] = sipp_host
-        configFileObject[aeonix_host]['sipp_user'] = sipp_user
-        configFileObject[aeonix_host]['sipp_password'] = sipp_password
+    def sectionWrite(elementKeysInput):
+        configFileObject[elementKeysInput[0]] = {}
+        configFileObject[elementKeysInput[0]]['aeonix_host'] = elementKeysInput[0]
+        configFileObject[elementKeysInput[0]]['aeonix_user'] = elementKeysInput[1]
+        configFileObject[elementKeysInput[0]]['aeonix_password'] = elementKeysInput[2]
+        configFileObject[elementKeysInput[0]]['aeonix_web_user'] = elementKeysInput[3]
+        configFileObject[elementKeysInput[0]]['aeonix_web_password'] = elementKeysInput[4]
+        configFileObject[elementKeysInput[0]]['sipp_host'] = elementKeysInput[5]
+        configFileObject[elementKeysInput[0]]['sipp_user'] = elementKeysInput[6]
+        configFileObject[elementKeysInput[0]]['sipp_password'] = elementKeysInput[7]
         configFileObject.write()
         print(bcolors.OK + 'done.' + bcolors.RESET)
         return
 
-    def sectionRemove():
-        print(bcolors.NOTE + 'configuration file contains ' + str(configfile.sectionsCount()) + ' server(s) environment.' + bcolors.RESET)
-        print(bcolors.INFO + ' | '.join(configFileObject.sections) + bcolors.RESET)
-        aeonix_host = input(bcolors.PROMPT + 'type the server to remove: ' + bcolors.RESET)
-
+    def sectionRemove(aeonix_host):
         try:
             configFileObject.sections.remove(aeonix_host)
             configFileObject.write()
-            print(bcolors.OK + 'done.' + bcolors.RESET)
+            #print(bcolors.OK + 'done.' + bcolors.RESET)
+            return (True)
         except ValueError:
-            print(bcolors.FAIL + 'value not in list.' + bcolors.RESET)
-        return
+            #print(bcolors.FAIL + 'value not in list.' + bcolors.RESET)
+            return (False)
+
+
 
     def sectionAdd():
         print(bcolors.NOTE + 'adding new server section' + bcolors.RESET)
-        aeonix_host = input(bcolors.INFO + 'aeonix host = '+ bcolors.RESET)
-        if configfile.validateInput(aeonix_host, 'ipAddress') == 'invalid':
-            return
+        elementKeys = ['aeonix host', 'aeonix user', 'aeonix password', 'aeonix web user',
+                                'aeonix web password', 'sipp host', 'sipp user', 'sipp password']
+        elementKeysInput = []
 
-        aeonix_user = input(bcolors.INFO + 'aeonix user = '+ bcolors.RESET)
-        if configfile.validateInput(aeonix_user, 'regularString') == 'invalid':
-            return
+        for iter in range(8):
+            elementKeysInput.append(input(f'{elementKeys[iter]} = '))
+            if 'host' in elementKeys[iter]:
+                try:
+                    ipaddress.ip_address(elementKeysInput[iter]) 
+                except:
+                    #print(bcolors.FAIL + 'invalid value.' + bcolors.RESET)
+                    return (False)
 
-        aeonix_password = input(bcolors.INFO + 'aeonix password = '+ bcolors.RESET)
-        if configfile.validateInput(aeonix_password, 'regularString') == 'invalid':
-            return
+            else:
+                if " " in elementKeysInput[iter] or elementKeysInput[iter] == "":
+                    #print(bcolors.FAIL + 'invalid value.' + bcolors.RESET)
+                    return (False)
 
-        aeonix_web_user = input(bcolors.INFO + 'aeonix web user = '+ bcolors.RESET)
-        if configfile.validateInput(aeonix_web_user, 'regularString') == 'invalid':
-            return
+        configfile.sectionWrite(elementKeysInput)
+        return(True)
 
-        aeonix_web_password = input(bcolors.INFO + 'aeonix web password = '+ bcolors.RESET)
-        if configfile.validateInput(aeonix_web_password, 'regularString') == 'invalid':
-            return
-
-        sipp_host = input(bcolors.INFO + 'sipp host = '+ bcolors.RESET)
-        if configfile.validateInput(sipp_host, 'ipAddress') == 'invalid':
-            return
-
-        sipp_user = input(bcolors.INFO + 'sipp user = '+ bcolors.RESET)
-        if configfile.validateInput(sipp_user, 'regularString') == 'invalid':
-            return
-
-        sipp_password = input(bcolors.INFO + 'sipp password = '+ bcolors.RESET)
-        if configfile.validateInput(sipp_password, 'regularString') == 'invalid':
-            return                   
-
-        configfile.sectionWrite(aeonix_host, aeonix_user, aeonix_password, aeonix_web_user,
-                                aeonix_web_password, sipp_host, sipp_user, sipp_password)
-
-
-    def validateInput(valueInput, valueType):
-        if valueType in ["ipAddress"]:
-            try:
-                ipaddress.ip_address(valueInput)
-                #print(f'{ip} is correct. Version: IPv{ip.version}')
-            except ValueError:
-                print(bcolors.FAIL + 'invalid value.' + bcolors.RESET)
-                return ('invalid')
-        elif valueType in ["regularString"]:
-            if " " in valueInput or valueInput == "":
-                print(bcolors.FAIL + 'invalid value.' + bcolors.RESET)
-                return ('invalid')
+    def overview():
+        if configfile.sectionsCount() >= 1:
+            file = open(configFileName,"r")
+            fileLines = file.readlines()
+            count = 0
+            #print(bcolors.INFO +'configuration file contains ' + str(len(config.sections)) + ' server(s) sections' + bcolors.RESET)
+            for line in fileLines:
+                count += 1
+                if line[0] =='[':
+                    print('      ' + '-' * 60)
+                print("      {}".format(line.strip()))
+            file.close()
+            print('      ' + '-' * 60)
+            #reorderconfigfile()
         else:
             return
 
 
-#a = configfile.Initialize() v
-#a = configfile.sectionsCount() v
-#a = configfile.sectionsNames() v
-#a = configfile.checkOptions() v
-#a = configfile.sectionWrite(aeonix_host, aeonix_user, aeonix_password, aeonix_web_user, aeonix_web_password, sipp_host, sipp_user, sipp_password) v
-#a = configfile.sectionRemove() 
-#a = configfile.sectionAdd()
+
+
+#a = configFileObject.walk
 #print(a)
 
 prompt = bcolors.MENU + """
@@ -150,9 +135,10 @@ Aeonix Load Gen configuration file menu
 1 -- add a new server
 2 -- delete a server
 3 -- review the configuration file
-4 -- initialize/clear the configuration file
+4 -- clear/initialize the configuration file
 5 -- go back
 """ + bcolors.NOTE + f"""note:  you can use the {', '.join(configfile.checkOptions())} option(s) only\n""" + bcolors.PROMPT + """
 Enter your choice [1-5]: """ + bcolors.RESET
 
-choice = input(prompt)
+#choice = input(prompt)
+
