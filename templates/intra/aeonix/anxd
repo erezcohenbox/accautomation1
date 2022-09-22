@@ -1,0 +1,274 @@
+# #!/bin/bash
+# This script starts the Sea softswitch application
+# usage: runRedSea.sh ../config/Server_Config.xml g
+#
+# Copyright: Copyright (c) 2004, 2005
+# Company: tadiran telecom
+# author Nir Dweck
+# changes Sergey Kucherov
+
+RSHOME=/home/aeonixadmin/aeonix
+RSLIB=$RSHOME/lib
+cd ${RSHOME}/local/bin
+RSPIDFILE=/var/run/anxd.pid
+THIS_IS_AMASON_SERVER=/home/aeonixadmin/aeonix/local/data/thisAmasonServer.dat
+export LANG=en_US.UTF-8
+LOGCMD="/usr/local/sbin/cronolog --symlink=$RSHOME/logs/stdout.log $RSHOME/logs/server/stdout-%y-%m-%d.log"
+RSAUSER=aeonixadmin
+RSWEBLOG=${RSHOME}/logs/webdisplay.log
+FINGER_PRINT_FILE=/home/aeonixadmin/fingerprint.c2v
+
+source anx_functions.sh
+
+# we're putting our own pid into RSPIDFILE in order for it to exist when Java is not yet started (when logs are compressed)
+echo $$ > $RSPIDFILE
+
+# Start PostgreSQL server
+. ./startDatabase.sh
+
+
+USAGE=false
+if [ "$1" == "help" ]; then USAGE=true 
+fi
+if [ "$1" == "h" ]; then USAGE=true 
+fi
+if [ "$1" == "?" ]; then USAGE=true 
+fi
+if [ "$1" == "" ]; then 
+  echo missing configuration file
+  USAGE=true 
+fi
+
+# set JAVA_HOME and RSJAVACMD
+.  ./setJavaHome.sh
+.  ./setClassPath.sh
+
+if [ "${JAVA_HOME}" == "" ]; then 
+  echo "JAVA_HOME is not defined in the system."
+  exit 1
+fi
+
+ln -sf /home/aeonixadmin/aeonix/_jvm/bin/java /home/aeonixadmin/aeonix/_jvm/bin/javaaeonix
+JAVACMD=${JAVA_HOME}/bin/javaaeonix
+
+DEBUGDLL=false
+
+if [ "$2" == "-G" ]; then DEBUGDLL=true
+fi
+if [ "$2" == "-g" ]; then DEBUGDLL=true
+fi
+
+if [ "${USAGE}" == "true" ]; then
+  echo "USAGE:"
+  echo "runRedSea < configuration file > [ g ]"
+  echo "          g  - Load debug dll."
+  exit 0
+fi
+
+
+GSLIBDIR=${RSHOME}/space/lib
+
+
+LIBPATH="-Djava.library.path=${RSLIB}"
+
+DLLTYPE="-Dredsea.library.debug=${DEBUGDLL}"
+
+
+echo "the new path is ${PATH}"
+
+
+# -----------------------------------------------------------------------
+# rename all the former log files to the suffix .old     
+# -----------------------------------------------------------------------
+rm -rf ${RSHOME}/logs/*.old
+rm -f $RSHOME/logs/stdout.log
+if [ ! -d ${RSHOME}/logs/server ]; then
+    mkdir ${RSHOME}/logs/server
+else
+    #save old logs:
+    NOW_DATE=`date +%a'.'%Y-%m-%d'.'%H_%M_%S`
+    cd ${RSHOME}/logs/server
+    for FILE_TO_MOVE in `ls *.log`
+    do
+        mv $FILE_TO_MOVE ${FILE_TO_MOVE}.${NOW_DATE}.last.log
+        zip -m ${FILE_TO_MOVE}.${NOW_DATE}.last.zip ${FILE_TO_MOVE}.${NOW_DATE}.last.log
+    done
+    cd ${RSHOME}/local/bin
+fi
+
+if [ -d ${RSHOME}/logs/msg ]; then
+    mv ${RSHOME}/logs/msg ${RSHOME}/logs/msg.old
+    mkdir ${RSHOME}/logs/msg
+else
+    mkdir ${RSHOME}/logs/msg
+fi
+
+THIS_MEM=`cat /proc/meminfo | grep MemTotal | awk '{print $2}'`
+#SET XMS TO BE 75% OF AVAILABLE MEMORY
+#let "MEM_PERCENT=${THIS_MEM}/100"
+#let "NEW_MEM_MAX=${MEM_PERCENT}*50"
+#let "NEW_MEM_MIN=${MEM_PERCENT}*25"
+#if [ $NEW_MEM_MAX -gt 1048576 ]; then
+#        let "NEW_MEM_MAX=1048576"
+#fi
+#if [ $NEW_MEM_MIN -gt 1048576 ]; then
+#        let "NEW_MEM_MIN=1048576"
+#fi
+#MEM="-Xms${NEW_MEM_MIN}k -Xmx${NEW_MEM_MAX}k -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false "
+#MEM="-Xms1024m -Xmx1712m "
+
+
+
+if [ $THIS_MEM -lt 2500000 ] || [ -f $RSHOME/config/ACC3G.txt  ] ; then
+     MEM=" -Xms700m -Xmx700m "
+     PERM=" -XX:PermSize=200m  -XX:MaxPermSize=200m "
+	 . ./change-Aeonix-configuration.sh 2G
+       
+elif [ $THIS_MEM -lt 3500000 ]; then
+     MEM=" -Xms650m -Xmx650m "
+     PERM=" -XX:PermSize=200m  -XX:MaxPermSize=200m "
+       . ./change-Aeonix-configuration.sh 3G
+elif [ $THIS_MEM -lt 8500000 ]; then
+    MEM="-Xms1712m -Xmx1712m "
+    PERM=" -XX:PermSize=300m  -XX:MaxPermSize=300m "  
+	. ./change-Aeonix-configuration.sh 4G
+
+elif [ $THIS_MEM -lt 16500000 ]; then	
+	MEM=" -Xms4000m -Xmx4000m "
+    PERM=" -XX:PermSize=700m  -XX:MaxPermSize=700m "
+  . ./change-Aeonix-configuration.sh 8G
+else
+  MEM=" -Xms10000m -Xmx10000m "
+  PERM=" -XX:PermSize=1000m  -XX:MaxPermSize=1000m "
+  . ./change-Aeonix-configuration.sh 16G
+ fi
+ 
+ 
+ echo "MEM = $MEM  PREM = $PERM"
+
+
+
+HOST=`hostname`
+SERVER_IPV4=`cat $RSHOME/config/netconfig.properties | grep "ip=" | awk 'BEGIN{FS="="}{print $2}'`
+if [ "$SERVER_IPV4" == "unknown" ]; then
+    SERVER_IPV4=`getServerIP`
+fi
+
+ACTIVE_IPV=`cat $RSHOME/config/common/ipv`
+
+if [ "$ACTIVE_IPV" == "6" ]; then
+  SERVER_IPV6=`cat $RSHOME/config/netconfig.properties | grep "ipv6=" | awk 'BEGIN{FS="="}{print $2}'`
+  if [ "$SERVER_IPV6" == "unknown" -o  "$SERVER_IPV6" == "" ]; then
+      SERVER_IPV6=`getServerIPV6`
+  fi
+fi
+
+#test if NIC is up and if IP exists
+
+if [ "$ACTIVE_IPV" == "6" ]; then
+	echo "Waiting for NIC...IPV6=${SERVER_IPV6}"
+	SERVER_IPV6=`waitForNIC ${ACTIVE_IPV} ${SERVER_IPV6}`
+	isIpv6Exist $SERVER_IPV6
+	IS_IP_EXIST=$?
+	SERVER_IP=$SERVER_IPV6
+else
+	echo "Waiting for NIC...IPV4=${SERVER_IPV4}"
+	SERVER_IPV4=`waitForNIC ${ACTIVE_IPV} ${SERVER_IPV4}`
+	isIpExist $SERVER_IPV4
+	IS_IP_EXIST=$?
+	SERVER_IP=$SERVER_IPV4
+fi
+if [ $IS_IP_EXIST -eq 0 ]; then
+	echo "The server IP is missing. IP found : $SERVER_IP. Please fix network configuration.";
+	exit 1
+fi
+
+if [ "$ACTIVE_IPV" == "6" ]; then
+export SERVER_IPV6
+echo "ipv6 active IPV6=${SERVER_IPV6}"
+fi
+
+
+RMI="-Djava.rmi.server.hostname=${SERVER_IP}"
+
+JVM_DEBUG=""
+if [ -f $RSHOME/config/debug ] || [ "$CSS_DEBUG" == "true" ]; then
+    JVM_DEBUG=" -Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n "
+fi
+
+#echo "Starting LUS_Wrapper script..."
+#$RSHOME/local/bin/LUS_Wrapper.sh
+
+echo "starting Aeonix on IPV4=${SERVER_IPV4} IPV6=${SERVER_IPV6} ACTIVE_IPV=${ACTIVE_IPV}"
+RSCMD="${JAVACMD} -Dcsd -server -XX:-DoEscapeAnalysis -XX:+PrintGCCause –XX:CMSMaxAbortablePrecleanTime=15000 -XX:+DisableExplicitGC -XX:+UseCompressedClassPointers -XX:+UseConcMarkSweepGC -XX:+UseParNewGC ${PERM} -XX:CMSInitiatingOccupancyFraction=85  -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -XX:+ExplicitGCInvokesConcurrent -XX:-ReduceInitialCardMarks -XX:-ReduceBulkZeroing -XX:+CMSClassUnloadingEnabled -Dsun.rmi.dgc.server.gcInterval=60000 -Dsun.rmi.dgc.client.gcInterval=60000 -verbose:gc -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime ${JVM_DEBUG} ${MEM}  -classpath ${RSCLASSPATH} ${LIBPATH} ${DLLTYPE} ${RMI} -Dredsea.system.default.address=${SERVER_IPV4} -Dredsea.system.default.address.IPV6=${SERVER_IPV6} -Dcom.gs.replication.disable-duplicate-filtering=true redsea.infrst.core.init.RSServer $1"
+#echo ${RSCMD}
+
+if [ -f /etc/redhat-release ]; then
+    VERSION=`cat /etc/redhat-release`
+    if [ "${VERSION}" == "Red Hat Linux release 9 (Shrike)" ]; then 
+        export LD_ASSUME_KERNEL=2.4.1
+    fi
+fi
+${RSCMD} 2>&1 | ${LOGCMD} &
+sleep 5
+ps aux | grep csd | grep -v grep | awk 'BEGIN{FS=" "}{print $2}' > $RSPIDFILE
+RETVAL=$?
+if [ $RETVAL -ne 0 ]; then
+   exit $RETVAL;
+fi
+#run the space validator
+. ./validateSpace.sh startup 180
+
+FIRST_TIME_FILE="/home/aeonixadmin/aeonix/config/first_time.ini"
+if [ ! -f $FIRST_TIME_FILE ];then
+	NEW_P=`wget --no-dns-cache --connect-timeout=5  -q -t 1 -O - http://169.254.169.254/latest/meta-data/instance-id`
+	echo "NEW_P=$NEW_P"	
+	if [ ! -z "$NEW_P" ]; then
+		. ./changeUserP.sh aeonixadmin anx $NEW_P
+		RETVAL=$?
+		if [ $RETVAL -eq 0 ]; then
+			echo "" > $FIRST_TIME_FILE
+		fi	
+		# For aeonixWD: need to config OOM
+		touch $THIS_IS_AMASON_SERVER
+	fi
+fi
+
+#RETVAL=$?
+#if [ $RETVAL -ne 0 ]; then
+#       return $RETVAL;
+#fi
+
+if fileFlagExpired /tmp/autoweb; then 
+    #run the web server
+    . ./RSWebConf_start.sh copy > ${RSWEBLOG}
+    RETVAL=$?
+fi
+
+# This scrip build script for WD, the script to check the different time between servers
+${RSHOME}/local/bin/buildClockDifferentClusterMonitor.sh
+if [ ! -f /home/aeonixadmin/aeonix/config/disableldapservice.txt ]; then
+#synch LDAP Directory
+$RSHOME/local/bin/synchLdapDirectory.sh
+# close unauthenticated requests
+#/opt/opendj/bin/dsconfig -p 4444 -D "cn=Directory Manager" -w anx set-global-configuration-prop -X -n --set reject-unauthenticated-requests:true
+fi
+
+# sync T3 voicemail
+. ${RSHOME}/local/bin/syncT3Voicemail.sh -wait 900  >> ${RSHOME}/logs/vmSync.log &
+
+# -----------------------------------------------------------------------
+# create new fingerprint.c2v   
+# -----------------------------------------------------------------------
+if fileFlagExpired /tmp/auto; then
+if [ -f ${FINGER_PRINT_FILE} ]; then
+	echo "Remove fingerprint.c2v file..."
+	rm -f ${FINGER_PRINT_FILE}
+fi
+cd ${RSHOME}/local/bin
+echo "fingerprint.c2v: creating new one..." | tee -a ${STDOUT}
+. ./aeonix_hasp_util.sh --fingerprint ${FINGER_PRINT_FILE}
+fi
+#cd ${CURRENT_FOLDER}
+
+exit $RETVAL 
